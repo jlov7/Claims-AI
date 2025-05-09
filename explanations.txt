@@ -1,0 +1,77 @@
+## Global Prerequisites: Core Tooling Installation
+
+**ELI5:**
+We've just installed a bunch of essential workshop tools for our computer. Think of it like getting all the right screwdrivers, wrenches, and measuring tapes before we start building our amazing Claims-AI robot. These tools will help us manage our code, run different parts of our project, and process documents.
+
+**Technical:**
+Executed `brew install git docker docker-compose node@20 pnpm python@3.11 jq tesseract ffmpeg graphviz` to install core development dependencies:
+
+*   `git`: For version control.
+*   `docker` & `docker-compose`: For containerization and orchestration of services like our database, storage, and other helper applications.
+*   `node@20` & `pnpm`: For frontend development. Node.js is the runtime for JavaScript, and pnpm is an efficient package manager to handle our frontend libraries.
+*   `python@3.11`: The primary language for our backend development, including the AI logic and API.
+*   `jq`: A command-line tool for processing JSON data, which can be very helpful for inspecting API responses or configuration files.
+*   `tesseract`: An Optical Character Recognition (OCR) engine. This will allow our application to "read" text from images and PDFs.
+*   `ffmpeg`: A multimedia framework, likely to be used for processing audio for the voice-over feature (e.g., with Coqui TTS).
+*   `graphviz`: A tool for creating diagrams from text descriptions, which we can use to generate architecture diagrams automatically.
+
+This ensures that the development environment has all the foundational software required to build and run the Claims-AI MVP project.
+
+## Global Prerequisites: LM Studio Setup
+
+**ELI5:**
+The user confirmed that the special "brain" program (LM Studio) is already installed on the computer. This brain is loaded with the specific AI model (Phi-4) we need, and it's ready to listen for our project's requests.
+
+**Technical:**
+User confirmed that LM Studio is already installed in `/Applications`, the `phi-4-reasoning-plus` model has been downloaded within LM Studio, and the local inference server is running and accessible on port 1234. This fulfills the prerequisites for having a local LLM available for the RAG system.
+
+## Global Prerequisites: Docker Desktop Configuration
+
+**ELI5:**
+Docker is like a system that lets us run parts of our project in their own special boxes (called containers), so they don't interfere with each other or the main computer. You've just made sure Docker is turned on and given it enough power (at least 8GB of memory and 4 processing units) to handle all the boxes we'll need for our project.
+
+**Technical:**
+User confirmed that Docker Desktop is enabled and configured with at least 8 GB of RAM and 4 CPUs allocated to it. This ensures Docker has sufficient resources to run the project's containerized services (Minio, Postgres, ChromaDB, Coqui TTS, backend application, frontend application) effectively and without performance bottlenecks.
+
+## Global Prerequisites: Repository Setup
+
+**ELI5:**
+We've confirmed our project has a home on the computer in the `Claims-AI` folder. We then created the main instruction manual (`project.txt`) that tells us exactly what we're building and put it inside our project's home. We also double-checked that our to-do list (`tasks.md`) is in the right place. The project is also linked to its online backup and collaboration space on GitHub (`git@github.com:jlov7/Claims-AI.git`).
+
+**Technical:**
+*   Confirmed the local workspace `/Users/jasonlovell/AI/Claims-AI` is the root for the project and is intended to be linked to the remote Git repository `git@github.com:jlov7/Claims-AI.git`.
+*   Created/verified `project.txt` in the repository root, populating it with the detailed project requirements, scope, architecture, and objectives. This file serves as the primary source of truth for project specifications.
+*   Confirmed that `tasks.md` exists in the repository root.
+This completes the initial file structure and documentation setup within the local repository.
+
+## Global Prerequisites: Python Environment Setup
+
+**ELI5:**
+We've set up a special, clean workspace just for the Python tools our project needs. 
+1. We got the right version of Python (3.11.7 - think of it as the right model year for our Python toolkit).
+2. We told our project to always use this specific Python version.
+3. We then built a virtual sandbox (`.venv`) inside our project folder. This sandbox keeps all the Python tools (packages) for *this* project separate, so they don't get mixed up with tools for other projects on the computer, or the main computer's Python tools.
+4. We stepped inside this sandbox (activated it).
+5. Finally, we created an empty list (`requirements.txt`) where we'll later write down all the specific Python packages (extra tool attachments) our project will need. We then told Python to install everything on that list (which was nothing, for now!).
+
+This means our Python setup is ready for when we start adding more complex code!
+
+**Technical:**
+Successfully configured the Python environment for the project:
+*   Installed Python 3.11.7 using `pyenv install 3.11.7`.
+*   Set the local Python version for the project directory to 3.11.7 using `pyenv local 3.11.7`, which created a `.python-version` file.
+*   Created a Python virtual environment named `.venv` within the project root using `python -m venv .venv` (leveraging the pyenv-selected Python interpreter).
+*   Activated the virtual environment for the current shell session using `source .venv/bin/activate`. The shell prompt now indicates `(.venv)`.
+*   As `requirements.txt` did not exist, it was created as an empty file.
+*   Executed `pip install -r requirements.txt`. Since `requirements.txt` is currently empty, no packages were installed, but the Python environment is now correctly bootstrapped and ready for future dependency management.
+
+## Global Prerequisites: Node.js Dependencies Setup
+
+**ELI5:**
+For the part of our project that users will see and click on (the frontend), we use a different set of tools (Node.js is the environment, pnpm is the tool manager). We've just created a shopping list (`package.json`) for these tools, with a few basic items already on it (like React, which helps us build the interactive parts). Then we told `pnpm` to go get everything on that list and organize it. This gets the frontend workshop ready for when we start building the user interface!
+
+**Technical:**
+Successfully configured the Node.js frontend dependencies:
+*   Checked for `package.json` and found it was missing.
+*   Created a `package.json` file with initial configuration for a React/Vite/TypeScript frontend. This included specifying `name`, `version`, basic `scripts` (dev, build, lint, preview), and initial `dependencies` (`react`, `react-dom`) and `devDependencies` (`@types/react`, `@types/react-dom`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `@vitejs/plugin-react`, `eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `typescript`, `vite`).
+*   Executed `pnpm install`. This command installed the specified dependencies into a `node_modules` directory (which should be gitignored) and created a `pnpm-lock.yaml` file to ensure reproducible installations of frontend packages. The project is now set up for frontend development using Vite and React.

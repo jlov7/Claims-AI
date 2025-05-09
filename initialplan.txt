@@ -1,0 +1,116 @@
+Claims-AI MVP – Build Tasks (Open-Source Stack w/ Phi-4 & LM Studio)
+Legend ☐ Todo ☑ Done 🛠 Automated by script 🔍 Cursor-prompt (human-in-the-loop)
+Cursor will tick the boxes as it runs and write phase reflections to explanation.txt.
+All paths are relative to repo root.
+
+Global Prerequisites (run once per dev machine)
+☐ Core tooling  
+brew install git docker docker-compose node@20 pnpm python@3.11 jq tesseract ffmpeg graphviz
+Download LM Studio dmg → install to /Applications.
+Launch LM Studio → Model Gallery → search phi-4-reasoning-plus → Download & Serve (REST port 1234).
+☐ Enable Docker Desktop, allocate ≥ 8 GB RAM & 4 CPU.
+☐ Clone repo git clone git@github.com:pwc/claims-ai.git && cd claims-ai
+☐ Python env  
+pyenv install 3.11.7 && pyenv local 3.11.7
+python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+☐ Node deps pnpm install
+☐ Init pre-commit hooks pre-commit install
+☐ Create project.md (copy of Requirements) and ensure tasks.md (this file) in repo root.
+
+Phase 0 – Plan & Confirm (🔍)
+🔍 Prompt: “Review project.md & tasks.md; outline your execution plan in explanation.txt. Ask for clarification if any ambiguity.”
+☐ Ensure explanations logged to docs/explanation.txt.
+
+Phase 1 – Local Infra (Docker-Compose)
+Step
+Task
+Command / File
+Outcome
+1
+Copy env example
+cp .env.sample .env
+Cursor fills ports, secrets
+2
+Start services
+docker-compose -f docker-compose.dev.yml up -d
+Minio, Postgres, Chroma, Coqui TTS
+3
+Verify LM Studio
+curl -X POST http://localhost:1234/v1/chat/completions -d '{"model":"phi-4-reasoning-plus","messages":[{"role":"user","content":"ping"}]}'
+
+
+4
+Health script
+scripts/check_services.sh
+returns 0 when all containers + LM Studio healthy
+
+
+Phase 2 – Document Ingestion
+☐ OCR pipeline python scripts/extract_text.py --src data/raw --out data/json
+☐ Chunk & embed python scripts/chunk_embed.py --in data/json --db chroma
+☐ Unit tests pytest tests/ingestion/
+🔍 Prompt Cursor to document learning in explanation.txt
+
+Phase 3 – Core RAG API
+☐ FastAPI scaffold in backend/; uses phi-4 endpoint.
+☐ /ask route – hybrid search + answer + citations.
+☐ /summarise route – single doc summary.
+☐ /draft route – multi-doc note via python-docx.
+☐ Integration tests pytest -m api.
+🔍 Document phase learnings.
+
+Phase 4 – Innovation Layer
+4A Nearest Precedent Finder
+☐ Create data/precedents.csv; embed with scripts/embed_precedents.py.
+☐ /precedents route returns top-5.
+☐ React side-panel component.
+4B Confidence Meter & Self-Healing
+☐ Implement Reflexion scorer.
+☐ Regenerate answer if score < 3.
+☐ UI colour glow + progress bar.
+4C Voice-Over
+☐ Coqui TTS container in docker-compose.
+☐ /speech endpoint returns mp3.
+☐ React audio controls.
+4D Interactive Red-Team
+☐ security/redteam.yml with 5 prompts.
+☐ /redteam route executes tests, returns metrics.
+☐ UI button + modal display.
+
+Phase 5 – Front-End (React + Chakra)
+☐ Chat panel with markdown + citation chips.
+☐ File uploader drop-zone.
+☐ Strategy note editor & Word export.
+☐ Precedent panel, confidence glow.
+☐ Voice-over button, red-team modal.
+☐ Info Overlay page – architecture diagram SVG + how-it-works text.
+🔍 Document UX demo tips in explanation.txt
+
+Phase 6 – Testing & CI/CD
+☐ pytest coverage ≥ 85 %.
+☐ Playwright e2e happy-path test.
+☐ GitHub Actions workflow: lint → tests → build Docker → publish ghcr.
+☐ fails build if coverage/drop.
+🔍 Explain CI results.
+
+Phase 7 – Docs & Demo Assets
+☐ make arch-diagram – generates Graphviz diagram.
+☐ make demo-data – loads 10 redacted claims.
+☐ make loom-demo – records scripted walkthrough.
+☐ Ensure explanation.txt has per-phase notes.
+
+Phase 8 – Enterprise Upgrade Proofs
+☐ Azure: run scripts/azure_migrate.py (Blob, AI Search, GPT-4o).
+☐ AWS: run scripts/aws_migrate.py (S3, Bedrock Claude 3, Kendra).
+☐ GCP: run scripts/gcp_migrate.py (GCS, Vertex AI Gemini, Vertex Search).
+☐ docker-compose.cloud.yml selects provider via env.
+☐ Playwright e2e for each provider.
+🔍 Summarise trade-offs in explanation.txt.
+
+Completion Criteria
+All checkboxes ticked, CI green.
+explanation.txt covers each phase (tech + ELI5).
+Demo assets render flawlessly.
+
+When this list is complete, you have a fully-featured prototype, wow-layer, rich documentation and a tested path to enterprise scale.
+
