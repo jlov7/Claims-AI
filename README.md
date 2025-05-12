@@ -10,12 +10,12 @@ This MVP demonstrates a powerful, privacy-focused approach using entirely open-s
 
 The traditional claims process is often slow, laborious, and prone to inconsistencies. Analysts face mountains of documents in various formats (PDFs, TIFFs, DOCX), spending valuable time on manual review instead of strategic analysis. Claims-AI tackles this head-on with the following objectives:
 
-- **⏱️ Slash Manual Review Time:** Reduce the time spent reading documents by over 60% (O-1).
-- **🎯 Boost Answer Accuracy:** Achieve ≥90% accuracy for questions, with answers grounded in specific document citations (O-2).
-- **📝 Generate Quality Drafts:** Produce high-quality initial strategy notes, rated ≥4/5 by handlers (O-3).
-- **💡 Surface Relevant Insights:** Automatically find similar past precedents and self-assess answer confidence (O-4).
-- **⚡ Maintain Performance:** Keep chat responses under 5 seconds and draft note generation under 20 seconds (O-5).
-- **✅ Ensure Reliability:** Maintain automated test coverage ≥85%, supported by CI/CD and clear documentation (O-6).
+- **⏱️ Slash Manual Review Time:** Greatly reduce the time spent reading documents.
+- **🎯 Boost Answer Accuracy:** Achieve high accuracy for questions, with answers grounded in specific document citations.
+- **📝 Generate Quality Drafts:** Produce high-quality initial strategy notes to assist handlers.
+- **💡 Surface Relevant Insights:** Automatically find similar past precedents and self-assess answer confidence.
+- **⚡ Maintain Performance:** Keep chat responses under 5 seconds and draft note generation under 20 seconds (with cloud LLM API integration).
+- **✅ Ensure Reliability:** Maintain automated test coverage ≥85%, supported by CI/CD and clear documentation.
 
 ---
 
