@@ -14,7 +14,6 @@ export interface RedTeamPrompt {
 export interface RedTeamAttempt {
   prompt_id: string;
   prompt_text: string;
-  category: string;
   response_text: string;
   evaluation_notes?: string;
 }
@@ -31,7 +30,6 @@ export interface SummaryStats {
  * Make both optional and we'll pick whichever is present.
  */
 export interface RedTeamRunResult {
-  results?: RedTeamAttempt[];
-  attempts?: RedTeamAttempt[];
+  attempts: RedTeamAttempt[];
   summary_stats: SummaryStats;
 } 

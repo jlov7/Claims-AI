@@ -1,18 +1,15 @@
 export interface SourceDocument {
-  page_content?: string;
-  metadata?: { [key: string]: any };
-
-  /** Original filename of the document that produced this chunk */
   file_name?: string;
-
-  /** Chunk identifier (string or number, depending on backend) */
+  page_content?: string;      // chunk_content alias
   chunk_id?: string | number;
+  score?: number;
+  metadata?: { [key: string]: any };
 }
 
 export interface ChatMessage {
   id: string;
-  text: string;
   sender: 'user' | 'ai';
+  text: string;
   sources?: SourceDocument[];
   confidence_score?: number;
   isLoading?: boolean; // To indicate AI is thinking
@@ -20,6 +17,7 @@ export interface ChatMessage {
   audioUrl?: string; // Added for TTS playback
   isHealing?: boolean; // To indicate AI is attempting self-correction
   self_heal_attempts?: number; // Number of self-healing attempts
+  isPlaying?: boolean;        // UI flag
 }
 
 export interface AskRequest {
