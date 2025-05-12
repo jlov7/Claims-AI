@@ -1,4 +1,4 @@
-# Claims-AI MVP: AI-Powered Insurance Claim Analysis
+# Claims-AI Test: AI-Powered Insurance Claim Analysis (WIP)
 
 **Tired of spending hours manually sifting through dense claim documents?** Claims-AI is an open-source prototype designed to revolutionize how legal and insurance professionals analyze complex claims. By intelligently combining document ingestion, Optical Character Recognition (OCR), Retrieval-Augmented Generation (RAG) with local Large Language Models (LLMs), and innovative analysis tools, Claims-AI drastically cuts down review time and surfaces critical insights faster than ever.
 
@@ -383,5 +383,3 @@ By systematically mapping each POC component to its enterprise-grade cloud equiv
 | BI/Reporting         | None                    | Power BI                             | AWS QuickSight                          | Google Looker Studio                  |
 
 ---
-
-For deeper background and intermediate steps, see [project.md](project.md), [tasks.md](tasks.md), and `explanations.txt` for per-phase narratives. 
