@@ -66,7 +66,13 @@ app = FastAPI(
 # Add CORS middleware at module level
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    # Temporarily hardcoding origins for demo/testing due to .env restrictions
+    allow_origins=[
+        "http://localhost:5173",  # Standard Vite default
+        "http://localhost:5176",  # Seen in use
+        "http://localhost:5177",  # Currently in use
+        "http://localhost:5178",  # Seen in use
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -19,6 +19,7 @@ pdfplumber>=0.10.0,<0.12.0 # Alternative/complementary for .pdf files, good for 
 chromadb>=0.5.0,<0.6.0 # ChromaDB client (ensure server is 0.5.4 or compatible)
 langchain>=0.1.0,<0.3.0 # Using a broader langchain for now, can narrow to specific packages if preferred
 langchain-community>=0.0.1,<0.3.0 # For community integrations like some embeddings/splitters
+langchain-core>=0.1.53,<0.2.0 # Core LangChain modules (documents, prompts, parsers)
 langchain-text-splitters>=0.0.1,<0.2.0 # Specific package for text splitters
 langchain-openai>=0.1.0,<0.2.0 # For OpenAI models, including embeddings if not using local
 tiktoken>=0.6.0,<0.7.0 # Tokenizer for LangChain

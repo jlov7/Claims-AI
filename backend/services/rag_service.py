@@ -119,7 +119,7 @@ class RAGService:
 
     async def query_rag(
         self, user_query: str
-    ) -> Tuple[str, List[SourceDocument], Optional[int]]:
+    ) -> Tuple[str, List[SourceDocument], Optional[int], int]:
         logger.info(f"RAG query received: {user_query}")
         if not user_query:
             logger.warning("Empty query received.")
@@ -127,6 +127,7 @@ class RAGService:
                 "Please provide a query.",
                 [],
                 3,
+                0,
             )  # Default confidence for empty query
 
         try:
@@ -142,7 +143,6 @@ class RAGService:
                 query_texts=[user_query],
                 n_results=self.settings.RAG_NUM_SOURCES,
                 include=["metadatas", "documents", "distances"],
-                where_document={"$contains": user_query},  # Basic keyword filter
             )
             logger.debug(f"ChromaDB results: {results}")
 
@@ -182,6 +182,7 @@ class RAGService:
                     "I could not find any relevant documents to answer your question.",
                     [],
                     2,
+                    0,
                 )  # Low confidence if no docs
 
             # 3. Construct prompt with context
@@ -262,7 +263,7 @@ class RAGService:
             logger.info(
                 f"Final answer: '{answer[:100]}...', Sources: {len(sources)}, Confidence: {confidence_score}"
             )
-            return answer, sources, confidence_score
+            return answer, sources, confidence_score, current_attempt
 
         except Exception as e:
             logger.error(
@@ -273,6 +274,7 @@ class RAGService:
                 "I encountered an error trying to answer your question.",
                 [],
                 1,
+                0,
             )  # Lowest confidence on error
 
     # Helper method for confidence scoring to avoid repetition

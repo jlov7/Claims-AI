@@ -14,11 +14,12 @@ export interface ChatMessage {
   text: string;
   sender: 'user' | 'ai';
   sources?: SourceDocument[];
-  confidence?: number;
+  confidence_score?: number;
   isLoading?: boolean; // To indicate AI is thinking
   error?: boolean;
   audioUrl?: string; // Added for TTS playback
   isHealing?: boolean; // To indicate AI is attempting self-correction
+  self_heal_attempts?: number; // Number of self-healing attempts
 }
 
 export interface AskRequest {
@@ -29,4 +30,5 @@ export interface AskResponse {
   answer: string;
   sources: SourceDocument[];
   confidence_score?: number;
+  self_heal_attempts?: number;
 } 

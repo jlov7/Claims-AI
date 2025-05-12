@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -12,176 +12,124 @@ import {
   Spinner,
   Text,
   Heading,
+  Collapse,
+  useDisclosure,
+  useColorModeValue,
+  Alert,
+  AlertIcon,
+  Code,
+  Tooltip,
 } from '@chakra-ui/react';
-import { draftStrategyNote } from '../services/draftService.js';
-import { DraftStrategyNoteRequest, QAPair } from '../models/draft.js';
+import { draftStrategyNote } from '../services/draftService.ts';
+import { DraftStrategyNoteRequest } from '../models/draft.ts';
+import { saveAs } from 'file-saver';
+import { FiDownload } from 'react-icons/fi';
 
-const StrategyNoteGenerator: React.FC = () => {
-  const isE2E = import.meta.env.VITE_E2E_TESTING === 'true';
-  const [claimSummary, setClaimSummary] = useState('');
-  const [documentIdsString, setDocumentIdsString] = useState('');
-  const [qaHistoryString, setQaHistoryString] = useState('');
-  const [additionalCriteria, setAdditionalCriteria] = useState('');
-  const [outputFilename, setOutputFilename] = useState('ClaimStrategyNote.docx');
+export interface StrategyNoteGeneratorProps {
+  documentIds: string[];
+  chatHistory?: string; // Optional chat history context
+  claimSummary?: string; 
+}
 
-  const [isDrafting, setIsDrafting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const StrategyNoteGenerator: React.FC<StrategyNoteGeneratorProps> = ({ documentIds, chatHistory, claimSummary }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [criteria, setCriteria] = useState('');
+  const [draftContent, setDraftContent] = useState<string | null>(null); // Store draft text
   const toast = useToast();
+  const { isOpen: isPreviewOpen, onToggle: onPreviewToggle } = useDisclosure();
 
-  const handleGenerateNote = async () => {
-    setError(null);
-    if (isE2E) {
-      // E2E mode: trigger a dummy file download using blob URL
-      const blob = new Blob(['Dummy content'], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = outputFilename.trim();
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      return;
-    }
-
-    if (!outputFilename.trim()) {
-      setError('Output filename is required.');
-      return;
-    }
-
-    let docIds: string[] | undefined = undefined;
-    if (documentIdsString.trim()) {
-      docIds = documentIdsString.split(',').map(id => id.trim()).filter(id => id);
-    }
-
-    let qaHistory: QAPair[] | undefined = undefined;
-    if (qaHistoryString.trim()) {
-      try {
-        qaHistory = JSON.parse(qaHistoryString);
-        if (!Array.isArray(qaHistory)) throw new Error('QA History must be a JSON array.');
-        // Basic validation for QAPair structure can be added here if needed
-      } catch (e) {
-        setError('Invalid JSON format for Q&A History. Please provide an array of {question: string, answer: string} objects.');
-        return;
-      }
-    }
-
-    if (!claimSummary.trim() && (!docIds || docIds.length === 0) && (!qaHistory || qaHistory.length === 0) && !additionalCriteria.trim()) {
-      setError('At least one context field (Summary, Document IDs, Q&A History, or Criteria) must be provided.');
-      return;
-    }
+  const handleGenerateAndDownload = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    setDraftContent(null); // Clear preview
 
     const requestData: DraftStrategyNoteRequest = {
-      claimSummary: claimSummary.trim() || undefined,
-      documentIds: docIds,
-      qaHistory: qaHistory,
-      additionalCriteria: additionalCriteria.trim() || undefined,
-      outputFilename: outputFilename.trim(),
+      documentIds: documentIds.length > 0 ? documentIds : undefined,
+      claimSummary: claimSummary?.trim() || undefined,
+      additionalCriteria: `Chat History: ${chatHistory || 'N/A'}\nUser Criteria: ${criteria || 'None'}`,
+      outputFilename: 'Strategy_Note.docx' // Default filename
     };
 
-    setIsDrafting(true);
     try {
       const blob = await draftStrategyNote(requestData);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = requestData.outputFilename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      saveAs(blob, requestData.outputFilename);
+
+      setDraftContent(`Generated note based on:\n- Docs: ${documentIds.join(', ') || 'N/A'}\n- Summary: ${claimSummary || 'N/A'}\n- Chat/Criteria: Provided\n\n(DOCX downloaded)`);
+      if (!isPreviewOpen) onPreviewToggle(); // Show preview area after download
+
       toast({
-        title: 'Strategy Note Generated',
-        description: `${requestData.outputFilename} has been downloaded.`,
+        title: 'Draft Downloaded',
+        description: `${requestData.outputFilename} downloaded successfully.`,
         status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+    } catch (error: any) {
+      console.error('Error generating/downloading draft:', error);
+      setDraftContent(null); // Clear preview on error
+      if (isPreviewOpen) onPreviewToggle(); // Hide preview on error
+      toast({
+        title: 'Draft Generation Failed',
+        description: error.message || 'Could not generate or download the strategy note.',
+        status: 'error',
         duration: 5000,
         isClosable: true,
       });
-    } catch (e: any) {
-      const errorMessage = e.message || 'Failed to generate strategy note.';
-      setError(errorMessage);
-      toast({
-        title: 'Error Generating Note',
-        description: errorMessage,
-        status: 'error',
-        duration: 7000,
-        isClosable: true,
-      });
     } finally {
-      setIsDrafting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <Box p={5} shadow="md" borderWidth="1px" borderRadius="md" w="100%">
-      <Heading size="md" mb={4}>Generate Claim Strategy Note</Heading>
-      <VStack spacing={4} as="form" onSubmit={(e) => { e.preventDefault(); handleGenerateNote(); }}>
-        <FormControl isInvalid={!!error && error.includes('filename')}>
-          <FormLabel htmlFor="tour-draft-filename">Output Filename (.docx)</FormLabel>
-          <Input
-            id="tour-draft-filename"
-            value={outputFilename}
-            onChange={(e) => setOutputFilename(e.target.value)}
-            placeholder="e.g., StrategyNote_Claim123.docx"
-          />
-          {error && error.includes('filename') && <FormErrorMessage>{error}</FormErrorMessage>}
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="tour-draft-summary">Claim Summary (Optional)</FormLabel>
-          <Textarea
-            id="tour-draft-summary"
-            value={claimSummary}
-            onChange={(e) => setClaimSummary(e.target.value)}
-            placeholder="Enter a brief summary of the claim..."
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="documentIds">Document IDs (Optional, comma-separated)</FormLabel>
-          <Input
-            id="documentIds"
-            value={documentIdsString}
-            onChange={(e) => setDocumentIdsString(e.target.value)}
-            placeholder="e.g., doc1.pdf.json,doc2.tiff.json"
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="qaHistory">Q&A History (Optional, JSON format)</FormLabel>
-          <Textarea
-            id="qaHistory"
-            value={qaHistoryString}
-            onChange={(e) => setQaHistoryString(e.target.value)}
-            placeholder='[{"question": "What is...?", "answer": "It is..."}]'
-            rows={3}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="additionalCriteria">Additional Criteria/Instructions (Optional)</FormLabel>
-          <Textarea
-            id="additionalCriteria"
-            value={additionalCriteria}
-            onChange={(e) => setAdditionalCriteria(e.target.value)}
-            placeholder="Specific points to cover, tone, structure preferences..."
-          />
-        </FormControl>
-
-        {error && !error.includes('filename') && (
-          <Text color="red.500" mt={2}>{error}</Text>
-        )}
-
-        <Button
-          type="submit"
-          colorScheme="blue"
-          isLoading={isDrafting}
-          spinner={<Spinner size="sm" />}
-          w="100%"
+    <Box p={4} shadow="md" borderWidth="1px" borderRadius="md">
+      <Heading size="md" mb={1}>Generate Strategy Note (DOCX)</Heading>
+      <Text fontSize="sm" color="gray.600" mb={3}>
+        Draft a claim strategy note in Word format using AI context.
+      </Text>
+       <Tooltip 
+         label="Click to generate a DOCX strategy note using the AI, based on the context of uploaded documents."
+         placement="top"
+         hasArrow
+       >
+        <Button 
+          leftIcon={<FiDownload />} 
+          colorScheme="teal"
+          onClick={handleGenerateAndDownload} 
+          isLoading={isLoading}
+          loadingText="Generating & Downloading..."
+          className="strategy-note-button"
+          mt={2}
         >
-          Download Strategy Note
+          Generate & Download DOCX
         </Button>
-      </VStack>
+      </Tooltip>
+
+      <FormControl>
+        <FormLabel htmlFor="strategy-criteria" fontSize="sm">Optional Criteria:</FormLabel>
+        <Textarea 
+          id="strategy-criteria" 
+          value={criteria}
+          onChange={(e) => setCriteria(e.target.value)}
+          placeholder="Enter specific points or sections to include..."
+          size="sm"
+          rows={2}
+        />
+      </FormControl>
+
+      <Collapse in={isPreviewOpen} animateOpacity>
+        <Box mt={4} p={3} borderWidth="1px" borderRadius="md" bg={useColorModeValue('gray.50', 'gray.700')}>
+          <Heading size="sm" mb={2}>Generated Note Context</Heading>
+          <Textarea 
+            value={draftContent || ''} 
+            isReadOnly 
+            height="150px"
+            fontFamily="monospace"
+            fontSize="xs"
+            borderColor="gray.300"
+          />
+        </Box>
+      </Collapse>
     </Box>
   );
 };

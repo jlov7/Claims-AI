@@ -107,13 +107,13 @@ load-demo:
 
 process-demo:
 	@echo "Running OCR extraction for demo data..."
-	$(DOCKER_COMPOSE) exec backend $(PYTHON) /app/$(EXTRACT_SCRIPT) --src /app/data/raw/demo --out /app/data/processed_text
+	@docker-compose exec backend python /app/./scripts/extract_text.py --src /app/data/raw/demo --out /app/data/processed_text
 	@echo "Running chunking and embedding for demo data..."
-	$(DOCKER_COMPOSE) exec backend $(PYTHON) /app/$(EMBED_SCRIPT) --in /app/data/processed_text
+	@docker-compose exec backend python /app/./scripts/chunk_embed.py --in /app/data/processed_text
 
 embed-precedents:
-	@echo "Running precedent embedding script..."
-	$(DOCKER_COMPOSE) exec backend $(PYTHON) /app/$(PRECEDENT_SCRIPT)
+	@echo "Embedding precedents from data/precedents/precedents.csv..."
+	@docker-compose exec backend python /app/./scripts/embed_precedents.py
 
 # Testing
 test-backend: check-venv

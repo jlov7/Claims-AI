@@ -26,7 +26,7 @@ async def test_ask_endpoint_success_high_confidence(client: AsyncClient, mocker)
 
     mocker.patch(
         "backend.services.rag_service.RAGService.query_rag",
-        return_value=(mock_answer, mock_sources, mock_final_confidence),
+        return_value=(mock_answer, mock_sources, mock_final_confidence, 0),
     )
 
     response = await client.post("/api/v1/ask", json={"query": "A good query?"})
@@ -57,7 +57,7 @@ async def test_ask_endpoint_success_low_confidence(client: AsyncClient, mocker):
 
     mocker.patch(
         "backend.services.rag_service.RAGService.query_rag",
-        return_value=(mock_answer, mock_sources, mock_final_confidence),
+        return_value=(mock_answer, mock_sources, mock_final_confidence, 0),
     )
 
     response = await client.post("/api/v1/ask", json={"query": "A tricky query?"})
@@ -81,7 +81,7 @@ async def test_ask_endpoint_empty_query_service_handled(client: AsyncClient, moc
     mock_confidence = 3  # Default confidence for empty query from service
     mocker.patch(
         "backend.services.rag_service.RAGService.query_rag",
-        return_value=(mock_answer, mock_sources, mock_confidence),
+        return_value=(mock_answer, mock_sources, mock_confidence, 0),
     )
 
     response = await client.post("/api/v1/ask", json={"query": ""})

@@ -6,14 +6,16 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { describe, it, expect } from 'vitest';
 
 describe('StrategyNoteGenerator', () => {
-  it('renders heading, filename input, and download button', () => {
+  it('renders heading, criteria textarea, and generate button', () => {
+    const mockDocumentIds = ['doc1.json', 'doc2.json'];
     render(
       <ChakraProvider>
-        <StrategyNoteGenerator />
+        <StrategyNoteGenerator documentIds={mockDocumentIds} />
       </ChakraProvider>
     );
-    expect(screen.getByText(/Generate Claim Strategy Note/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/e\.g\., StrategyNote_Claim123\.docx/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Download Strategy Note/i })).toBeInTheDocument();
+    expect(screen.getByText(/^Strategy Note$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Optional Criteria:/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Generate & Download DOCX/i })).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/e\.g\., StrategyNote_Claim123\.docx/i)).not.toBeInTheDocument();
   });
 }); 

@@ -8,16 +8,25 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
-      - ./scripts:/app/scripts # Map the scripts directory
-      # Ensure ./data/processed_text exists or is created for potential outputs
       - ./data/processed_text:/app/data/processed_text
-      - ./data/raw:/app/data/raw # For reading raw files
+      - ./data/outputs:/app/data/outputs
+      - ./data/temp_raw_uploads:/app/data/temp_raw_uploads
+      - ./data/precedents:/app/data/precedents
+      - ./scripts:/app/scripts
     env_file:
       - .env
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - PHI4_API_BASE=http://host.docker.internal:1234/v1
+      - CHROMA_COLLECTION_NAME=claims_documents_mvp
     depends_on:
-      - minio
-      - chromadb
-      - postgres
+      minio:
+        condition: service_started
+      chromadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - claims_ai_network
 
@@ -40,8 +49,13 @@ services:
     ports:
       - "8008:8000" # Exposing ChromaDB on host port 8008 to avoid conflict with backend
     volumes:
-      - chroma_data:/chroma/.chroma/index # Persist Chroma data
-    command: uvicorn chromadb.app:app --host 0.0.0.0 --port 8000 --workers 1
+      - chroma_data:/chroma/.chroma/index # Persist ChromaDB data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"] # Basic check
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - claims_ai_network
 

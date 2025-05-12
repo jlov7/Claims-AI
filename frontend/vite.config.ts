@@ -5,13 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const isE2ETesting = env.VITE_E2E_TESTING === 'true'
-  const basePath = isE2ETesting ? '/' : '/claims-ai/'
+  const basePath = mode === 'development' ? '/' : '/claims-ai/'
 
   console.log(`[vite.config.ts] RUNNING CONFIGURATION`)
   console.log(`[vite.config.ts] Mode: ${mode}`)
   console.log(`[vite.config.ts] VITE_E2E_TESTING from env: ${env.VITE_E2E_TESTING}`)
   console.log(`[vite.config.ts] isE2ETesting variable: ${isE2ETesting}`)
-  console.log(`[vite.config.ts] Determined base path: ${basePath}`)
+  console.log(`[vite.config.ts] Determined base path (for router): ${basePath}`)
 
   return {
     plugins: [react()],

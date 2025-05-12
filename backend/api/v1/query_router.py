@@ -29,12 +29,20 @@ async def rag_ask_endpoint(
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
     try:
-        answer, sources, confidence_score = await rag_service.query_rag(request.query)
+        (
+            answer,
+            sources,
+            confidence_score,
+            self_heal_attempts,
+        ) = await rag_service.query_rag(request.query)
         logger.info(
             f"Successfully processed query. Answer: '{answer[:50]}...', Sources: {len(sources)}, Confidence: {confidence_score}"
         )
         return RAGQueryResponse(
-            answer=answer, sources=sources, confidence_score=confidence_score
+            answer=answer,
+            sources=sources,
+            confidence_score=confidence_score,
+            self_heal_attempts=self_heal_attempts,
         )
     except Exception as e:
         logger.error(

@@ -28,6 +28,7 @@ class RAGQueryResponse(BaseModel):
     answer: str
     sources: List[SourceDocument]
     confidence_score: Optional[int] = None
+    self_heal_attempts: int = 0
 
 
 class SummariseRequest(BaseModel):

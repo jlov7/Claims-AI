@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Button,
@@ -11,142 +11,125 @@ import {
   Text,
   Heading,
   SimpleGrid,
-  Card, CardHeader, CardBody, Tag, Wrap, WrapItem
+  Card, CardHeader, CardBody, Tag, Wrap, WrapItem,
+  Alert,
+  AlertIcon,
+  Stack,
+  StackDivider,
+  Progress,
+  Badge,
+  useColorModeValue,
+  Flex,
+  Center
 } from '@chakra-ui/react';
-import { findNearestPrecedents } from '../services/precedentService.js';
-import { Precedent, PrecedentSearchRequest } from '../models/precedent.js';
+import { Precedent } from '../models/precedent.ts';
 
-const PrecedentPanel: React.FC = () => {
-  const isE2E = import.meta.env.VITE_E2E_TESTING === 'true';
-  const [claimSummary, setClaimSummary] = useState('');
-  const [precedents, setPrecedents] = useState<Precedent[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
+export interface PrecedentPanelProps {
+  precedents: Precedent[] | null;
+  isLoading: boolean;
+  error: string | null;
+}
 
-  const handleSearchPrecedents = async () => {
-    if (isE2E) {
-      setError(null);
-      setIsLoading(false);
-      // E2E mode: stub search results based on summary
-      if (claimSummary.includes('NoMatchPossibleSummary')) {
-        // Simulate no results: show toast only
-        toast({ title: 'No Precedents Found', description: 'No precedents found matching your summary.', status: 'info', duration: 5000, isClosable: true });
-      } else {
-        // Simulate some results
-        setPrecedents([{ claim_id: 'demo-1', summary: claimSummary, outcome: 'Test outcome', keywords: ['kw1', 'kw2'], similarity_score: 0.95 }]);
-      }
-      return;
-    }
-    if (!claimSummary.trim()) {
-      setError('Please enter a claim summary to find precedents.');
-      toast({ title: 'Input Required', description: 'Please enter a claim summary.', status: 'warning', duration: 3000, isClosable: true });
-      return;
-    }
-    setError(null);
-    setIsLoading(true);
-    setPrecedents([]); // Clear previous results
-
-    const requestData: PrecedentSearchRequest = {
-      claim_summary: claimSummary.trim(),
-    };
-
-    try {
-      const response = await findNearestPrecedents(requestData);
-      setPrecedents(response.precedents || []);
-      if (!response.precedents || response.precedents.length === 0) {
-        toast({
-          title: 'No Precedents Found',
-          description: 'No precedents found matching your summary.',
-          status: 'info',
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    } catch (e: any) {
-      const errorMessage = e.message || 'Failed to fetch precedents.';
-      setError(errorMessage);
-      toast({
-        title: 'Error Fetching Precedents',
-        description: errorMessage,
-        status: 'error',
-        duration: 7000,
-        isClosable: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+const PrecedentPanel: React.FC<PrecedentPanelProps> = ({ precedents, isLoading, error }) => {
+  const cardBg = useColorModeValue('white', 'gray.700');
+  const scoreColor = (score: number): string => {
+    if (score > 0.85) return 'green';
+    if (score > 0.75) return 'yellow';
+    return 'orange';
   };
 
   return (
-    <Box p={5} shadow="md" borderWidth="1px" borderRadius="md" w="100%">
-      <Heading size="md" mb={4}>Find Nearest Precedents</Heading>
-      <VStack spacing={4} align="stretch">
-        <FormControl isInvalid={!!error && error.includes('summary')}>
-          <FormLabel htmlFor="tour-precedent-input">Claim Summary / Query</FormLabel>
-          <Input
-            id="tour-precedent-input"
-            value={claimSummary}
-            onChange={(e) => setClaimSummary(e.target.value)}
-            placeholder="Enter a summary of the current claim..."
-          />
-        </FormControl>
-
-        {error && (
-          <Text color="red.500" mt={2}>{error}</Text>
-        )}
-
-        <Button
-          id="tour-precedent-search-button"
-          onClick={handleSearchPrecedents}
-          colorScheme="teal"
-          isLoading={isLoading}
-          spinner={<Spinner size="sm" />}
-          w="100%"
-        >
-          Search Precedents
-        </Button>
-
-        {precedents.length > 0 && (
-          isE2E ? (
-            <Box mt={6}>
-              <div className="chakra-card">
-                <p>Precedent for {claimSummary}</p>
-              </div>
-            </Box>
-          ) : (
-            <Box mt={6}>
-              <Heading size="sm" mb={3}>Found Precedents:</Heading>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                {precedents.map((p, index) => (
-                  <Card key={index} variant="outline">
-                    <CardHeader pb={2}>
-                      <Heading size="xs" textTransform="uppercase">
-                        Claim ID: {p.claim_id}
-                        {p.similarity_score && (
-                          <Tag size="sm" colorScheme='cyan' ml={2}>Score: {p.similarity_score.toFixed(2)}</Tag>
-                        )}
+    <Box 
+      borderWidth="1px" 
+      borderRadius="lg" 
+      p={4} 
+      height="100%" 
+      overflowY="auto"
+      id="tour-precedent-panel"
+    >
+      <Heading size="md" mb={1}>Nearest Precedents (based on chat)</Heading>
+      <Text fontSize="sm" color="gray.600" mb={3}>
+        Automatically finds similar past claims based on the current chat context.
+      </Text>
+      {isLoading && (
+        <VStack justify="center" align="center" height="100%">
+          <Spinner size="lg" />
+          <Text>Finding similar precedents...</Text>
+        </VStack>
+      )}
+      {error && (
+        <Alert status="error">
+          <AlertIcon />
+          {error}
+        </Alert>
+      )}
+      {!isLoading && !error && (!precedents || precedents.length === 0) && (
+        <Center height="100px">
+           <Text color="gray.500">No precedents available to display.</Text>
+        </Center>
+      )}
+      {!isLoading && !error && precedents && precedents.length > 0 && (
+        <VStack spacing={4} align="stretch">
+          {precedents.map((p, index) => (
+            <Card key={p.claim_id || index} variant="outline" bg={cardBg} size="sm">
+              <CardHeader pb={1}> 
+                <Heading size='xs' textTransform='uppercase'>
+                  Precedent ID: {p.claim_id}
+                </Heading>
+              </CardHeader>
+              <CardBody pt={1}>
+                <Stack divider={<StackDivider />} spacing='3'>
+                  <Box>
+                    <Heading size='xs' textTransform='uppercase' mb={1}>
+                      Similarity Score
+                    </Heading>
+                    <Flex align="center">
+                      <Progress 
+                        value={(p.similarity_score ?? 0) * 100} 
+                        size='sm' 
+                        colorScheme={scoreColor(p.similarity_score ?? 0)}
+                        flexGrow={1}
+                        mr={2}
+                        borderRadius="md"
+                        aria-label={`Similarity score: ${((p.similarity_score ?? 0) * 100).toFixed(1)}%`}
+                      />
+                      <Badge colorScheme={scoreColor(p.similarity_score ?? 0)} variant="solid" fontSize="xs">
+                        {((p.similarity_score ?? 0) * 100).toFixed(1)}%
+                      </Badge>
+                    </Flex>
+                  </Box>
+                  <Box>
+                    <Heading size='xs' textTransform='uppercase' mb={1}>
+                      Summary Snippet
+                    </Heading>
+                    <Text pt='1' fontSize='sm' noOfLines={3}>
+                      {p.summary || 'No summary available.'}
+                    </Text>
+                  </Box>
+                  {p.keywords && p.keywords.length > 0 && (
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase' mb={1}>
+                        Keywords
                       </Heading>
-                    </CardHeader>
-                    <CardBody pt={0}>
-                      <Text fontSize="sm" mb={1}><strong>Summary:</strong> {p.summary}</Text>
-                      <Text fontSize="sm" mb={1}><strong>Outcome:</strong> {p.outcome}</Text>
-                      {p.keywords && p.keywords.length > 0 && (
-                        <Box mt={1}>
-                          <Text fontSize="xs" as="strong">Keywords:</Text>
-                          <Wrap spacing={1} mt={1}>
-                            {p.keywords.map(kw => <WrapItem key={kw}><Tag size="sm" colorScheme='gray'>{kw}</Tag></WrapItem>)}
-                          </Wrap>
-                        </Box>
-                      )}
-                    </CardBody>
-                  </Card>
-                ))}
-              </SimpleGrid>
-            </Box>
-          )
-        )}
-      </VStack>
+                      <Wrap spacing={1} mt={1}>
+                        {p.keywords.map((kw: string) => <WrapItem key={kw}><Tag size="sm" colorScheme='gray'>{kw}</Tag></WrapItem>)}
+                      </Wrap>
+                    </Box>
+                  )}
+                  {p.outcome && (
+                    <Box>
+                      <Heading size='xs' textTransform='uppercase' mb={1}>
+                        Outcome
+                      </Heading>
+                      <Text pt='1' fontSize='sm'>{p.outcome}</Text>
+                    </Box>
+                  )}
+                </Stack>
+              </CardBody>
+            </Card>
+          ))}
+        </VStack>
+      )}
     </Box>
   );
 };

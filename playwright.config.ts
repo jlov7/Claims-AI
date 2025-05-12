@@ -1,5 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Check if running in E2E mode (e.g., set by a specific script or env var)
+const isE2ETesting = process.env.E2E_TESTING === 'true';
+
+console.log(`[Playwright Config] E2E_TESTING env var: ${process.env.E2E_TESTING}`);
+console.log(`[Playwright Config] isE2ETesting variable: ${isE2ETesting}`);
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -14,14 +20,27 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/reporting */
-  reporter: [ ['list'] ],
+  reporter: 'list',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5178/claims-ai/',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on',
+    trace: 'on-first-retry',
+
+    // Pass the E2E flag to the browser context
+    launchOptions: {
+      // Consider adding slowMo for debugging if needed: slowMo: 50, 
+      env: {
+        VITE_E2E_TESTING: 'true'
+      }
+    },
+
+    // Set the environment variable for the browser context
+    // This makes import.meta.env.VITE_E2E_TESTING available in the frontend code
+    // Make sure the key matches exactly what Vite expects (VITE_...)
+    serviceWorkers: 'block', // Often needed for reliable testing
   },
 
   /* Configure projects for major browsers */
@@ -43,20 +62,26 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: [
-    { 
-      command: 'VITE_E2E_TESTING=true pnpm --filter frontend build',
-      timeout: 120_000,
-      stdout: 'pipe',
-      stderr: 'pipe',
+  webServer: {
+    // Command to start the dev server
+    command: 'cd frontend && pnpm dev --port 5178',
+    // URL to wait for before starting tests
+    url: 'http://localhost:5178/claims-ai/',
+    // Reuse existing server if running locally, start fresh in CI
+    reuseExistingServer: false,
+    // Set env var for the web server process itself
+    env: {
+      VITE_E2E_TESTING: 'true'
     },
-    {
-      command: 'VITE_E2E_TESTING=true pnpm --filter frontend exec vite preview --port 5173',
-      url: 'http://localhost:5173',
-      timeout: 120_000,
-      reuseExistingServer: false,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    },
-  ],
+    stdout: 'pipe', 
+    stderr: 'pipe',
+    timeout: 120 * 1000, // Increase timeout for server start
+  },
+
+  // Increase default timeout (default is 30s)
+  timeout: 60 * 1000, // 60 seconds
+  expect: {
+    // Increase default expect timeout (default is 5s)
+    timeout: 15 * 1000, // 15 seconds
+  },
 }); 

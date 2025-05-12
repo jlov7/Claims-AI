@@ -96,7 +96,10 @@ async def test_query_rag_high_initial_confidence(rag_service_instance: RAGServic
     # Configure the side_effect on the already mocked ainvoke method
     service.llm_client.ainvoke.side_effect = [initial_answer, high_confidence_score_str]
 
-    answer, sources, confidence = await service.query_rag(user_query)
+    # Expect 4 return values now
+    answer, sources, confidence, self_heal_attempts = await service.query_rag(
+        user_query
+    )
 
     assert answer == initial_answer
     assert confidence == 4
@@ -147,7 +150,10 @@ async def test_query_rag_low_confidence_successful_heal(
         healed_confidence_score_str,
     ]
 
-    answer, sources, confidence = await service.query_rag(user_query)
+    # Expect 4 return values now
+    answer, sources, confidence, self_heal_attempts = await service.query_rag(
+        user_query
+    )
 
     assert answer == revised_answer
     assert confidence == 5
@@ -185,7 +191,10 @@ async def test_query_rag_low_confidence_heal_still_low(
         low_confidence_score_str_2,
     ]
 
-    answer, sources, confidence = await service.query_rag(user_query)
+    # Expect 4 return values now
+    answer, sources, confidence, self_heal_attempts = await service.query_rag(
+        user_query
+    )
 
     assert answer == revised_answer
     assert confidence == 2
@@ -201,7 +210,10 @@ async def test_query_rag_empty_query_direct_return(rag_service_instance: RAGServ
     # service.llm_client.ainvoke is already an AsyncMock from the fixture.
     # We just need to check it wasn't called.
 
-    answer, sources, confidence = await service.query_rag(user_query)
+    # Expect 4 return values now
+    answer, sources, confidence, self_heal_attempts = await service.query_rag(
+        user_query
+    )
 
     assert answer == "Please provide a query."
     assert sources == []

@@ -1,111 +1,132 @@
 import React from 'react';
-import Joyride, { type CallBackProps, type Step, EVENTS, ACTIONS, STATUS } from 'react-joyride';
-import { safeLocalStorage } from '../utils/localStorage.js';
+import Joyride, { type Step, type CallBackProps, STATUS } from 'react-joyride';
+import { useDisclosure } from '@chakra-ui/react';
 
-interface GuidedTourProps {
-  run: boolean;
-  setRun: (run: boolean) => void;
+// Export the interface
+export interface GuidedTourProps {
+    runTour: boolean;
+    setRunTour: (run: boolean) => void;
 }
 
-const TOUR_STEPS: Step[] = [
-  {
-    target: '#tour-file-uploader',
-    content: 'Welcome to Claims-AI! Start by uploading your claim documents here. You can drag & drop or click to select files (PDF, DOCX, TIFF).',
-    placement: 'bottom',
-    disableBeacon: true,
-  },
-  {
-    target: '#tour-chat-input',
-    content: 'Once documents are processed (you\'ll see them appear in the chat), ask questions about them here. For example: "What is the date of loss?" or "Summarize the key events." ',
-    placement: 'top',
-  },
-  {
-    target: '#tour-chat-messages-area',
-    content: 'Your conversation with the AI, including its answers and any extracted information, will appear here.',
-    placement: 'bottom',
-  },
-  {
-    target: '#tour-strategy-note-generator',
-    content: 'Need a strategy note? Click here to generate one based on your uploaded documents and conversation. You can then download it as a DOCX file.',
-    placement: 'bottom',
-  },
-  {
-    target: '#tour-precedent-panel',
-    content: 'See relevant past cases (precedents) here. The AI will automatically find similar precedents based on the current claim.',
-    placement: 'left',
-  },
-  {
-    target: '#tour-summarise-panel',
-    content: 'Need a quick summary? Use this panel: enter a Document ID or paste text, then click "Get Summary" to see a concise summary of the document.',
-    placement: 'left',
-  },
-  {
-    target: '[id^="tour-voice-over-button-"]',
-    content: 'For AI messages, you can click an icon like this to hear the response read out loud.',
-    placement: 'right',
-  },
-  {
-    target: '#tour-red-team-modal-button',
-    content: 'Curious about the AI\'s robustness? Click here to run a series of test prompts and see how it responds.',
-    placement: 'left',
-  },
-  {
-    target: '#tour-info-sidebar-button',
-    content: 'Click this icon anytime to see a diagram of how the system works and a brief explanation of its components.',
-    placement: 'left',
-  },
-  {
-    target: 'body',
-    content: 'You\'re all set! Explore the features and let us know if you have any questions. You can restart this tour anytime from the main page.',
-    placement: 'center',
-  },
-];
+const GuidedTour: React.FC<GuidedTourProps> = ({ runTour, setRunTour }) => {
+  // Enhanced tour steps with clearer, benefit-focused language
+  const steps: Step[] = [
+    {
+      target: '#tour-health-status-display', 
+      content: 'First, check the status lights! Green means all systems (AI, databases) are ready to go.',
+      placement: 'bottom',
+      title: 'Welcome to Claims-AI!',
+    },
+    {
+      target: '#tour-file-uploader', 
+      content: 'Start here! Drag & drop your claim files (PDF, DOCX, TIFF) or click to browse. This feeds the AI the information it needs.',
+      placement: 'right',
+      title: 'Step 1: Upload Documents',
+    },
+     {
+      target: '#tour-summarise-panel', 
+      content: 'Need a quick overview? Enter a document ID (from uploaded files) or paste text here to get a concise summary from the AI.',
+      placement: 'left',
+      title: 'Analyse: Get a Summary',
+    },
+    {
+      target: '#tour-chat-panel', 
+      content: 'This is the main Q&A area. Ask specific questions about the documents you uploaded (e.g., \'What was the date of loss?\').',
+      placement: 'top',
+      title: 'Analyse: Ask Questions (RAG)',
+    },
+    {
+      target: '#tour-chat-input-area', 
+      content: 'Type your question here and press Enter or click Send. The AI will search the documents for answers.',
+      placement: 'top',
+      title: 'Analyse: Ask Questions (RAG)',
+      disableBeacon: true,
+    },
+    {
+      // Targets the wrapper, assumes an AI message appears after asking
+      target: '#tour-chat-panel .ai-message:last-of-type',
+      content: 'AI answers appear here! Look for the colored border indicating confidence (Green=High, Red=Low) and click the ▶️ button to hear it read aloud.',
+      placement: 'bottom',
+      title: 'Analyse: Review AI Answers',
+      disableBeacon: true, 
+    },
+    {
+      target: '#tour-precedent-panel', 
+      content: 'This panel automatically updates with similar past cases based on the latest AI chat answer, helping you find relevant history.',
+      placement: 'left',
+      title: 'Analyse: Find Similar Precedents',
+    },
+     {
+      target: '#tour-strategy-note-generator', 
+      content: 'Ready to draft? Click the button here to generate a basic Claim Strategy Note in DOCX format based on the documents and chat.',
+      placement: 'top',
+      title: 'Step 3: Generate Strategy Note',
+    },
+    {
+      target: '#tour-red-team-modal-button', 
+      content: 'Curious about AI safety? Click this to run pre-defined \'stress tests\' (adversarial prompts) and see how the AI responds.',
+      placement: 'top',
+      title: 'Test: Run Red Team Evaluation',
+    },
+    {
+      target: '#tour-info-sidebar-button', 
+      content: 'Need a refresher? Click this anytime to see the architecture diagram and learn more about how Claims-AI works.',
+      placement: 'bottom',
+      title: 'Learn More: Info Sidebar',
+    },
+     {
+      target: '#tour-restart-button', 
+      content: 'You can restart this tour anytime by clicking here!',
+      placement: 'bottom',
+      title: 'Tour Complete!',
+    },
+  ];
 
-const GuidedTour: React.FC<GuidedTourProps> = ({ run, setRun }) => {
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { action, status } = data;
+    const { status } = data;
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    if (
-      status === STATUS.FINISHED ||
-      status === STATUS.SKIPPED ||
-      action === ACTIONS.CLOSE ||
-      action === ACTIONS.RESET 
-    ) {
-      setRun(false);
-      safeLocalStorage?.setItem('claimsAiTourCompleted', 'true');
+    if (finishedStatuses.includes(status)) {
+      setRunTour(false); // Stop the tour when finished or skipped
     }
   };
 
   return (
     <Joyride
-      steps={TOUR_STEPS}
-      run={run}
+      steps={steps}
+      run={runTour}
+      continuous={true}
+      showProgress={true}
+      showSkipButton={true}
       callback={handleJoyrideCallback}
-      continuous
-      showProgress
-      showSkipButton
-      scrollToFirstStep
       styles={{
         options: {
-          zIndex: 10000,
-          primaryColor: '#3182ce',
+          zIndex: 10000, // Ensure it's above other elements
+          primaryColor: '#3182ce', // Chakra blue.500
+          textColor: '#1A202C', // Chakra gray.800
         },
         buttonClose: {
-          display: 'none',
+            display: 'none', // Hide default close button if using skip/finish logic
+        },
+         tooltip: {
+          backgroundColor: '#FFFFFF', // White background
+          borderRadius: 'md', // Chakra medium border radius
+        },
+        tooltipContainer: {
+          textAlign: 'left',
+        },
+        tooltipTitle: {
+          fontWeight: 'bold', // Bold title
         },
         buttonNext: {
-          backgroundColor: '#3182ce',
-          color: 'white',
-          borderRadius: '0.375rem',
-          padding: '0.5rem 1rem',
+          backgroundColor: '#3182ce', // Chakra blue.500
+          borderRadius: 'md',
         },
         buttonBack: {
-          color: '#3182ce',
-          borderRadius: '0.375rem',
-          padding: '0.5rem 1rem',
+           color: '#4A5568', // Chakra gray.600
         },
         buttonSkip: {
-          color: '#718096',
+            color: '#718096', // Chakra gray.500
         },
       }}
     />
