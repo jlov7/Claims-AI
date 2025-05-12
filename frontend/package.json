@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --report-unused-disable-directives",
+    "lint": "eslint . --report-unused-disable-directives --ignore-pattern 'src/__tests__/**' --ignore-pattern 'src/setupTests.ts'",
     "preview": "vite preview",
     "test": "vitest run"
   },

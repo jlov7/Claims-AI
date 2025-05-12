@@ -106,9 +106,12 @@ cd frontend && pnpm install && cd ..
 #### Docker Compose Mode (All-in-One)
 ```bash
 docker-compose up --build -d
-``` 
+./scripts/check_services.sh
+docker-compose exec backend python /app/scripts/extract_text.py --src /app/data/raw/demo --out /app/data/processed_text
+docker-compose exec backend python /app/scripts/chunk_embed.py --in /app/data/processed_text
+```
 - FastAPI: http://localhost:8000/docs
-- UI: http://localhost:5173
+- UI: http://localhost:5173/claims-ai/
 
 #### Local Dev Mode
 ```bash

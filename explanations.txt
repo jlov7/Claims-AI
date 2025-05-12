@@ -2078,3 +2078,25 @@ We drew a clear picture (a map) of how all the parts of Claims-AI fit and work t
 +   - **CI**: GitHub Actions (`.github/workflows/ci.yml`).
 +   - **Future Upgrades**: Model updates, scaling, auth, production deployments.
 + - This fulfills Phase 7 third task, providing users with a detailed, self-contained guide.
+
+## Demo Preparation & Manual Testing
+
+**ELI5 Explanation:**
+To get everything ready and see it work in your browser, you just run a few simple commands: bring up all the services, check they're healthy, load and embed the demo documents, and then start the React app. It's like laying down a track, putting on the train cars, and then turning on the engine to watch the train roll.
+
+**Technical Steps:**
+1. At the project root, bring up all services and load data:
+   ```bash
+   docker-compose up --build -d
+   ./scripts/check_services.sh
+   docker-compose exec backend python /app/scripts/extract_text.py --src /app/data/raw/demo --out /app/data/processed_text
+   docker-compose exec backend python /app/scripts/chunk_embed.py --in /app/data/processed_text
+   ```
+2. In another terminal, start the frontend dev server:
+   ```bash
+   cd frontend
+   pnpm dev
+   ```
+3. Open your browser to http://localhost:5173/claims-ai/ to interact with the full MVP.
+  
+This final section ensures you can demo every feature end-to-end without extra setup.
