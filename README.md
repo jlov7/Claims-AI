@@ -60,7 +60,7 @@ Beyond the core workflow, Claims-AI includes unique features to enhance analysis
 
 ## 4. Architecture
 
-![Architecture Diagram](docs/architecture.svg)
+![Architecture Diagram](docs/architecture-1.svg)
 
 *You can regenerate this diagram using `make arch-diagram` which converts `docs/architecture.md` (Mermaid source) to SVG.*
 
