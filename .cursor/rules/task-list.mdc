@@ -9,7 +9,7 @@ Guidelines for creating and managing task lists in markdown files to track proje
 
 ## Task List Creation
 
-1. Create task lists in a markdown file (in the project root):
+1. Create task lists in a markdown file (in the project root) if not already provided by the user:
    - Use `TASKS.md` or a descriptive name relevant to the feature (e.g., `ASSISTANT_CHAT.md`)
    - Include a clear title and description of the feature being implemented
 
@@ -36,7 +36,7 @@ Guidelines for creating and managing task lists in markdown files to track proje
    
    ## Implementation Plan
    
-   Detailed description of how the feature will be implemented.
+   Detailed description of how the feature will be implemented. Also provide an ELI5 description as well - this is important.
    
    ### Relevant Files
    
@@ -51,6 +51,7 @@ Guidelines for creating and managing task lists in markdown files to track proje
    - Add new tasks as they are identified
    - Move tasks between sections as appropriate
    - Update explanations.txt with all required detail (as outlined above)
+   - Provide the user with ELI5 explanations at every single step/stage.
 
 2. Keep "Relevant Files" section updated with:
    - File paths that have been created or modified
@@ -72,7 +73,7 @@ When working with task lists, the AI should:
 2. Mark completed tasks with [x] when finished
 3. Add new tasks discovered during implementation
 4. Maintain the "Relevant Files" section with accurate file paths and descriptions
-5. Document implementation details, especially for complex features
+5. Document implementation details, especially for complex features, alongside an excellent, easy-to-follow ELI5 explanation
 6. When implementing tasks one by one, first check which task to implement next
 7. After implementing a task, update the file to reflect progress
 8. Regularly update explanations.txt with all releveant and requested details

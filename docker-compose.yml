@@ -1,0 +1,71 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    platform: linux/amd64 # Force amd64 build for wider compatibility
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./scripts:/app/scripts # Map the scripts directory
+      # Ensure ./data/processed_text exists or is created for potential outputs
+      - ./data/processed_text:/app/data/processed_text
+      - ./data/raw:/app/data/raw # For reading raw files
+    env_file:
+      - .env
+    depends_on:
+      - minio
+      - chromadb
+      - postgres
+    networks:
+      - claims_ai_network
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # Console
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    command: server /data --console-address ":9001"
+    networks:
+      - claims_ai_network
+
+  chromadb:
+    image: chromadb/chroma:0.5.18 # Updated image version
+    ports:
+      - "8008:8000" # Exposing ChromaDB on host port 8008 to avoid conflict with backend
+    volumes:
+      - chroma_data:/chroma/.chroma/index # Persist Chroma data
+    command: uvicorn chromadb.app:app --host 0.0.0.0 --port 8000 --workers 1
+    networks:
+      - claims_ai_network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - claims_ai_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-claimsadmin} -d ${POSTGRES_DB:-claimsdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  minio_data:
+  chroma_data:
+  postgres_data:
+
+networks:
+  claims_ai_network:
+    driver: bridge 

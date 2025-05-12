@@ -1,0 +1,51 @@
+fastapi>=0.100.0,<0.112.0 # For the API framework
+uvicorn[standard]>=0.20.0,<0.30.0 # For running the FastAPI app
+python-dotenv>=1.0.0,<2.0.0 # For managing environment variables
+pydantic==2.7.*
+pydantic-settings>=2.5
+python-multipart>=0.0.9,<0.0.10 # For FastAPI file uploads (form data)
+
+# PostgreSQL driver
+psycopg2-binary>=2.9.0,<2.10.0 # For PostgreSQL connection
+
+# OCR and Document Processing
+pytesseract>=0.3.10,<0.4.0
+Pillow>=10.0.0,<11.0.0 # For image manipulation, often a Tesseract dependency
+python-docx>=1.0.0,<2.0.0 # For .docx files
+PyPDF2>=3.0.0,<4.0.0 # For .pdf files (text extraction)
+pdfplumber>=0.10.0,<0.12.0 # Alternative/complementary for .pdf files, good for text and tables
+
+# Text Splitting, Embeddings, and Vector DB
+chromadb>=0.5.0,<0.6.0 # ChromaDB client (ensure server is 0.5.4 or compatible)
+langchain>=0.1.0,<0.3.0 # Using a broader langchain for now, can narrow to specific packages if preferred
+langchain-community>=0.0.1,<0.3.0 # For community integrations like some embeddings/splitters
+langchain-text-splitters>=0.0.1,<0.2.0 # Specific package for text splitters
+langchain-openai>=0.1.0,<0.2.0 # For OpenAI models, including embeddings if not using local
+tiktoken>=0.6.0,<0.7.0 # Tokenizer for LangChain
+openai>=1.0.0,<2.0.0 # For OpenAI API calls (embeddings, completions)
+
+# Core ML/Data Processing (will be expanded)
+# PyMuPDF>=1.23.0 # For PDF processing (OCR will use Tesseract)
+# pandas>=2.0.0 # For data manipulation if needed
+
+# Vector DB Client (Chroma)
+# chromadb>=0.4.0,<0.5.0 # Replaced by 0.5.x, ensure compatibility if upgrading
+
+# LLM Interaction
+# openai>=1.0.0 # For interacting with OpenAI-compatible APIs like LM Studio
+
+# Object Storage (Minio)
+minio>=7.1.0,<8.0.0 # For Minio client
+
+# Other utilities
+# requests>=2.30.0,<3.0.0 # For making HTTP requests (e.g., to Coqui TTS)
+httpx>=0.25.0,<0.29.0 # For async HTTP requests to Coqui TTS 
+
+PyYAML>=6.0,<7.0 
+
+pytest-asyncio>=0.23.0,<0.27.0
+pytest-cov # Added for coverage reporting
+pytest-dotenv # Added to load .env file for tests
+
+# OAuth / Security (Optional, good practice if adding auth later)
+# python-jose[cryptography]>=3.3.0,<4.0.0 

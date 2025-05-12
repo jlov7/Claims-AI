@@ -1,1 +1,12 @@
- 
+pytest
+pytest-asyncio
+pytest-mock
+fastapi
+uvicorn
+python-dotenv
+chromadb
+openai
+langchain
+langchain-openai
+tiktoken
+# Add other project dependencies as needed 

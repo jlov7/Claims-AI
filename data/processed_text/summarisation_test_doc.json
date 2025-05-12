@@ -1,0 +1,3 @@
+{
+    "text": "This is the full sample content of a test document specifically created for the summarisation by document ID integration test. It contains multiple sentences to provide enough material for a basic summary. The purpose is to verify that the /summarise endpoint can correctly locate this file using its ID (filename), read its content, and then generate a summary based on this text. If this summary is generated, the test passes for this specific case."
+} 
