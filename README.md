@@ -1,130 +1,218 @@
-# Claims-AI MVP
+# Claims-AI MVP: AI-Powered Insurance Claim Analysis
 
-**Claims-AI** is an open-source prototype designed to transform how legal professionals process and analyze complex insurance claims. By combining document ingestion, OCR, Retrieval-Augmented Generation (RAG), and local large language models (LLMs), this toolchain dramatically reduces manual review time and empowers users with AI-driven insights.
+**Tired of spending hours manually sifting through dense claim documents?** Claims-AI is an open-source prototype designed to revolutionize how legal and insurance professionals analyze complex claims. By intelligently combining document ingestion, Optical Character Recognition (OCR), Retrieval-Augmented Generation (RAG) with local Large Language Models (LLMs), and innovative analysis tools, Claims-AI drastically cuts down review time and surfaces critical insights faster than ever.
 
----
-
-## 1. Executive Summary & Motivation
-
-Claims processing in insurance and legal contexts often involves hours—if not days—of manual review across multiple document types (PDFs, TIFFs, DOCX). Claims-AI was created to:
-
-- **Reduce manual review time** by ≥60% (O-1).
-- **Improve answer accuracy** to ≥90% with grounded citations (O-2).
-- **Produce high-quality strategy notes** with ≥4/5 handler ratings (O-3).
-- **Surface relevant precedents** and self-heal uncertain answers (O-4).
-- **Keep latency under 5s for chat** and under 20s for draft notes (O-5).
-- **Maintain automated test coverage ≥85%**, with live CI/CD and documentation (O-6).
-
-This MVP runs entirely on open-source components and a locally hosted Phi-4 model via LM Studio.
+This MVP demonstrates a powerful, privacy-focused approach using entirely open-source components and a locally hosted LLM (like Phi-4 via LM Studio), putting advanced AI capabilities directly in your hands.
 
 ---
 
-## 2. Core Features
+## 1. Why Claims-AI?
 
-### 2.1 Document Ingestion & OCR
+The traditional claims process is often slow, laborious, and prone to inconsistencies. Analysts face mountains of documents in various formats (PDFs, TIFFs, DOCX), spending valuable time on manual review instead of strategic analysis. Claims-AI tackles this head-on with the following objectives:
 
-- Drag-and-drop or API-driven upload of PDFs, TIFFs, DOCX.
-- Automated text extraction via Tesseract OCR, PDFMiner, and python-docx.
-- Metadata storage in PostgreSQL and JSON output in `data/processed_text/`.
-
-### 2.2 RAG Q&A Endpoint (`/api/v1/ask`)
-
-- Converts questions into embeddings, performs semantic + keyword hybrid search on ChromaDB.
-- Builds contextual prompts, invokes Phi-4 for answers, and returns grounded citations.
-
-### 2.3 Summarisation Endpoint (`/api/v1/summarise`)
-
-- Accepts **either** a `document_id` **or** raw text.
-- Generates concise, factual summaries via the Phi-4 model.
-
-### 2.4 Draft Strategy Note (`/api/v1/draft`)
-
-- Takes claim summary, document IDs, Q&A history, and criteria.
-- Compiles context, prompts Phi-4, and exports a Word (`.docx`) strategy note.
-
-### 2.5 Innovation Layer
-
-- **Nearest Precedent Finder** (`/api/v1/precedents`): Retrieves top-k similar past claims.
-- **Confidence Meter & Self-Healing**: Scores answers 1–5, auto-reprompts on low confidence.
-- **Voice-Over Playback** (`/api/v1/speech`): Text-to-speech with Coqui TTS and Minio storage.
-- **Interactive Red-Team Evaluation** (`/api/v1/redteam/run`): Runs adversarial prompt suite for robustness testing.
+- **⏱️ Slash Manual Review Time:** Reduce the time spent reading documents by over 60% (O-1).
+- **🎯 Boost Answer Accuracy:** Achieve ≥90% accuracy for questions, with answers grounded in specific document citations (O-2).
+- **📝 Generate Quality Drafts:** Produce high-quality initial strategy notes, rated ≥4/5 by handlers (O-3).
+- **💡 Surface Relevant Insights:** Automatically find similar past precedents and self-assess answer confidence (O-4).
+- **⚡ Maintain Performance:** Keep chat responses under 5 seconds and draft note generation under 20 seconds (O-5).
+- **✅ Ensure Reliability:** Maintain automated test coverage ≥85%, supported by CI/CD and clear documentation (O-6).
 
 ---
 
-## 3. Architecture
+## 2. Core Capabilities
+
+Claims-AI integrates several powerful features into a seamless workflow:
+
+### 2.1 Smart Document Ingestion & OCR
+
+- **Effortless Upload:** Drag-and-drop PDFs, TIFFs, and DOCX files directly into the web UI or use the API.
+- **Automated Text Extraction:** Leverages Tesseract OCR, PDFMiner, and `python-docx` to accurately extract text content, even from scanned documents.
+- **Organized Storage:** Stores extracted text in structured JSON files (`data/processed_text/`) and logs processing metadata in a PostgreSQL database.
+
+### 2.2 AI-Powered Q&A with Source Citations (`/api/v1/ask`)
+
+- **Understand Your Question:** Converts natural language questions into vector embeddings.
+- **Find Relevant Evidence:** Performs efficient hybrid search (semantic + keyword) across all ingested documents using ChromaDB.
+- **Generate Grounded Answers:** Uses a local LLM (Phi-4) to generate answers based *only* on the retrieved document excerpts, providing citations back to the source.
+
+### 2.3 On-Demand Summarization (`/api/v1/summarise`)
+
+- **Flexible Input:** Request a summary by providing either a specific document ID (from ingested files) or pasting raw text directly.
+- **Concise Overviews:** Generates factual, concise summaries using the Phi-4 model.
+
+### 2.4 Automated Strategy Note Drafting (`/api/v1/draft`)
+
+- **Context-Aware Generation:** Takes claim summaries, relevant document IDs, Q&A history, and specific criteria as input.
+- **Structured Output:** Compiles context, prompts Phi-4 to generate a comprehensive strategy note (covering findings, risks, recommendations), and exports it directly as a `.docx` file.
+
+---
+
+## 3. Innovative Features
+
+Beyond the core workflow, Claims-AI includes unique features to enhance analysis and trust:
+
+- **🔎 Proactive Precedent Discovery (`/api/v1/precedents`):** Submit a new claim's summary and instantly retrieve the top-k most similar historical claims from the precedent database.
+- **📊 Automated Answer Quality Assurance (Confidence Score & Self-Healing):** The Q&A system scores the LLM's confidence in its own answers (1-5). If below a threshold, it automatically attempts to re-evaluate the context and generate a better, more confident response.
+- **🔊 Accessible Insights via Voice (`/api/v1/speech`):** Generate text-to-speech audio (MP3) for any text, including AI answers, using Coqui TTS. Audio is stored in Minio and playable directly in the UI.
+- **🛡️ Built-in Robustness Testing (`/api/v1/redteam/run`):** Execute a suite of adversarial prompts against the RAG system directly via the API or UI to evaluate its safety and reliability.
+
+---
+
+## 4. Architecture
 
 ![Architecture Diagram](docs/architecture.svg)
 
-Core Components:
+*You can regenerate this diagram using `make arch-diagram` which converts `docs/architecture.md` (Mermaid source) to SVG.*
 
-1. **Frontend**: React + Chakra UI (Vite) customer-facing UI (port 5173).
-2. **Backend**: FastAPI gateway (port 8000) with modular routers and services.
-3. **PostgreSQL**: Metadata and ingestion pipeline records.
-4. **ChromaDB**: Vector store for RAG and precedent embeddings.
-5. **Minio**: S3-compatible storage for TTS audio and files.
-6. **LM Studio (Phi-4)**: Local LLM for chat, summarisation, drafting, and embeddings.
-7. **Coqui TTS**: Dockerized service for generating MP3s.
+**Core Components:**
 
-All backed by Docker Compose for reproducible stacks.
+1. **Frontend**: User-facing web application built with React, Vite, and Chakra UI. (Runs on host port 5173 by default).
+2. **Backend**: Central API gateway built with FastAPI (Python). Handles requests, orchestrates services, and interacts with the LLM. (Runs on host port 8000 by default).
+3. **PostgreSQL**: Relational database storing document metadata, processing status, and potentially other structured data.
+4. **ChromaDB**: Open-source vector database used for efficient similarity search on document chunks (for RAG) and precedents.
+5. **Minio**: S3-compatible object storage for raw documents, processed text, generated audio files, and potentially other artifacts.
+6. **LM Studio (User-Managed)**: Desktop application run *locally* by the user to host and serve the LLM (e.g., `phi-4-reasoning-plus`) via an OpenAI-compatible API (typically on `http://localhost:1234`). Claims-AI interacts with this local API.
+7. **Coqui TTS (Optional Service)**: Dockerized text-to-speech service used for the voice-over feature. (Runs on host port 5002 by default if using `docker-compose.dev.yml` or included in the main compose file).
 
----
-
-## 4. Getting Started
-
-### 4.1 Prerequisites
-
-- **macOS/Linux** with Docker Desktop
-- **LM Studio** desktop app with `phi-4-reasoning-plus` model → REST on port 1234
-- **Python 3.11**
-- **Node.js 20** & **pnpm**
-
-### 4.2 Local Setup
-
-```bash
-# 1. Clone
-git clone git@github.com:jlov7/Claims-AI.git
-cd Claims-AI
-
-# 2. Environment
-cp .env.sample .env   # Update keys & hosts
-
-# 3. Python backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r backend/requirements.txt
-
-# 4. Frontend
-npm install -g pnpm
-cd frontend && pnpm install && cd ..
-
-# 5. Demo data
-./scripts/load_demo_data.sh
-``` 
-
-### 4.3 Running
-
-#### Docker Compose Mode (All-in-One)
-```bash
-docker-compose up --build -d
-./scripts/check_services.sh
-docker-compose exec backend python /app/scripts/extract_text.py --src /app/data/raw/demo --out /app/data/processed_text
-docker-compose exec backend python /app/scripts/chunk_embed.py --in /app/data/processed_text
-```
-- FastAPI: http://localhost:8000/docs
-- UI: http://localhost:5173/claims-ai/
-
-#### Local Dev Mode
-```bash
-# Backend (requires Docker services for DB, Chroma, Minio, TTS)
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-
-# Frontend
-cd frontend && pnpm dev
-``` 
+All backend services (except the user-managed LM Studio) are containerized using Docker Compose for easy setup and consistent environments.
 
 ---
 
-## 5. Usage Examples
+## 5. Getting Started
+
+Follow these steps to set up and run Claims-AI on your local machine (macOS/Linux).
+
+### 5.1 Prerequisites
+
+Ensure you have the following installed:
+
+- **Git:** For cloning the repository. (`git --version`)
+- **Docker & Docker Compose:** For running containerized services. Docker Desktop is recommended for macOS. (`docker --version`, `docker-compose --version`)
+    - **Important:** Start Docker Desktop and allocate at least 8GB RAM and 4 CPUs to it in Docker Desktop settings.
+- **Python:** Version 3.11 recommended. (`python --version` or `python3 --version`).
+- **Node.js:** Version 20 recommended. (`node --version`).
+- **pnpm:** Performant Node.js package manager. (`pnpm --version`). Install via `npm install -g pnpm` if needed.
+- **(Optional but Recommended) OCR Engine:** Tesseract for document text extraction. (`tesseract --version`).
+- **(Optional) Multimedia Framework:** FFmpeg, potentially used by TTS. (`ffmpeg --version`).
+
+*Tip: On macOS, you can install most of these using Homebrew: `brew install git docker docker-compose node@20 pnpm python@3.11 tesseract ffmpeg`*
+
+- **LM Studio:**
+    1. Download and install LM Studio from [lmstudio.ai](https://lmstudio.ai/).
+    2. Launch LM Studio.
+    3. Search for and download the `microsoft/phi-4-reasoning-plus-GGUF` model (or another compatible model).
+    4. Go to the \"Local Server\" tab (<\--> icon).
+    5. Select the downloaded model.
+    6. **Important:** Start the server. Ensure it's running on the default port `1234`.
+
+### 5.2 Setup
+
+1. **Clone the Repository:**
+    ```bash
+    git clone git@github.com:jlov7/Claims-AI.git # Replace with your repo URL if different
+    cd Claims-AI
+    ```
+
+2. **Configure Environment:**
+    - Copy the sample environment file:
+      ```bash
+      cp .env.sample .env
+      ```
+    - **Crucial:** Open the `.env` file and review the settings. While defaults often work for local setup (especially `run-docker` mode), you might need to adjust ports or API keys if your setup differs. **Do not commit your `.env` file.**
+
+3. **Install Dependencies & Hooks (using Makefile):**
+    - This single command sets up the Python virtual environment, installs all backend and frontend dependencies, and installs pre-commit hooks.
+      ```bash
+      make setup
+      ```
+    - *After setup, activate the Python virtual environment for subsequent `make` commands or direct script execution:* `source .venv/bin/activate`
+
+### 5.3 Running the Application
+
+You have two main options for running the application:
+
+**Option 1: Full Docker Mode (Recommended)**
+
+This runs the entire backend stack (API, database, vector store, object storage, TTS) in Docker containers. Only the frontend runs locally.
+
+1. **Start Services:**
+    ```bash
+    make run-docker
+    ```
+    *(This runs `docker-compose up --build -d` and checks service health.)*
+
+2. **Load & Process Demo Data (First time or with new data):**
+    ```bash
+    make load-demo  # Copies sample PDFs to data/raw/demo/
+    make process-demo # Runs OCR and embedding scripts inside Docker
+    ```
+    *Note: `make process-demo` runs the extraction and embedding steps sequentially.* 
+
+3. **(Optional) Embed Precedents:**
+    ```bash
+    make embed-precedents # Embeds data from data/precedents/precedents.csv
+    ```
+
+4. **Start Frontend:**
+    ```bash
+    make run-dev-frontend
+    ```
+    *(This runs `cd frontend && pnpm dev`)*
+
+5. **Access:**
+    - **Web UI:** Open your browser to `http://localhost:5173/claims-ai/` (or as indicated by Vite).
+    - **Backend API Docs:** `http://localhost:8000/docs`
+    - **Minio Console:** `http://localhost:9001` (Use keys from `.env`)
+
+**Option 2: Local Development Mode**
+
+This is useful if you are actively developing the *backend* Python code. You run the FastAPI backend directly on your host machine, while other services (Postgres, Minio, ChromaDB, TTS) still run in Docker.
+
+1. **Start Required Docker Services:**
+    ```bash
+    docker-compose up -d postgres minio chromadb # Add 'tts' if needed for voice features
+    ```
+    *Wait for these to be healthy (`make check-services` can help verify, though it checks all services).* 
+
+2. **Configure `.env` for Local Backend:**
+    - **Important:** Ensure `POSTGRES_HOST`, `MINIO_URL`, `CHROMA_HOST`, `COQUI_TTS_URL` in your `.env` file point to `localhost` (or the correct host-mapped ports), **not** the Docker service names.
+
+3. **Load & Process Data (using local Python environment):**
+    *(Ensure venv is active: `source .venv/bin/activate`)*
+    ```bash
+    make load-demo
+    python scripts/extract_text.py --src data/raw/demo --out data/processed_text
+    python scripts/chunk_embed.py --in data/processed_text
+    # python scripts/embed_precedents.py # Optional
+    ```
+
+4. **Start Backend Locally:**
+    *(Ensure venv is active)*
+    ```bash
+    make run-dev-backend
+    ```
+
+5. **Start Frontend (in a separate terminal):**
+    ```bash
+    make run-dev-frontend
+    ```
+
+6. **Access:** URLs are the same as in Docker mode.
+
+### 5.4 Stopping the Application
+
+- **Stop all Docker services:**
+  ```bash
+  make stop
+  ```
+- **Clean up (Removes Docker volumes - ALL DATA WILL BE LOST):**
+  ```bash
+  make clean
+  ```
+
+---
+
+## 6. Usage Examples
 
 ### Ask a Question
 ```bash
@@ -166,73 +254,86 @@ curl -X POST http://localhost:8000/api/v1/speech \
 curl http://localhost:8000/api/v1/redteam/run | jq .
 ```
 
+### 6.3 Upload Documents
+
+Replace `sample.pdf` with your file path.
+
+```bash
+curl -X POST -F "files=@sample.pdf" http://localhost:8000/api/v1/documents/upload | jq .
+```
+
+### 6.4 Generate Voice
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"text": "Hello world from Claims AI!"}' http://localhost:8000/api/v1/speech | jq .
+```
+
+### 6.5 Run Red Team
+
+```bash
+curl http://localhost:8000/api/v1/redteam/run | jq .
+```
+
 ---
 
-## 6. Testing & Quality
+## 7. Testing & Quality
 
-- **Unit & Integration:** `pytest --cov=backend --cov-report=html`
-- **E2E:** `npx playwright test`
-- **Lint & Format:** `ruff .`, `black .`, `pnpm lint`
+Comprehensive tests ensure reliability:
 
-Check `htmlcov/index.html` for coverage metrics (goal ≥85%).
+- **Backend Unit & Integration Tests:**
+  ```bash
+  make test-backend
+  ```
+  *This runs `pytest` with coverage tracking. The HTML report is available in `htmlcov/index.html`. Aim for ≥85% coverage.*
+
+- **Frontend Unit Tests:**
+  ```bash
+  make test-frontend
+  ```
+  *This runs Vitest tests located in `frontend/src/__tests__/`.*
+
+- **End-to-End Tests:**
+  ```bash
+  make test-e2e
+  ```
+  *This runs Playwright tests located in `tests/e2e/`. Requires the full application stack to be running.*
+
+- **Linting & Formatting:**
+  ```bash
+  make lint    # Check backend (Ruff) and frontend (ESLint) code style
+  make format  # Apply backend (Black, Ruff fix) and frontend (Prettier) formatting
+  ```
+
+- **Pre-commit Hooks:** Configured in `.pre-commit-config.yaml` to automatically run formatters/linters before each commit (install via `make setup` or `pre-commit install`).
 
 ---
 
-## 7. Continuous Integration
+## 8. Continuous Integration
 
 GitHub Actions pipeline (`.github/workflows/ci.yml`) runs on every push/PR:
-1. Linting: Black & Ruff & Prettier
-2. Backend tests + coverage
-3. Frontend lint & build
+
+1.  **Linting:** Runs Ruff (backend) and ESLint (frontend).
+2.  **Backend Tests:** Executes `pytest` with coverage checks.
+3.  **Frontend Tests:** Executes `pnpm test` (`vitest`).
+4.  **Frontend Build:** Executes `pnpm build`.
+
+The workflow ensures code quality and functionality before merging changes.
 
 ---
 
-## 8. Future Roadmap & Enterprise Migration
+## 9. Future Roadmap & Enterprise Migration
 
-This section outlines how the Claims-AI POC can evolve into a robust, enterprise-grade solution on Azure, AWS, or GCP.
+This MVP provides a strong foundation. Future enhancements and enterprise migration paths could include:
 
-1. Production Infrastructure
-   - Container orchestration: Kubernetes (AKS, EKS, GKE) with Helm or Terraform.
-   - Secrets & configuration management: Azure Key Vault, AWS Secrets Manager, GCP Secret Manager.
-   - Observability: Prometheus/Grafana on K8s or cloud-native (Azure Monitor, CloudWatch, Cloud Logging).
-   - CI/CD pipelines: GitHub Actions integrated with Azure DevOps Pipelines, AWS CodePipeline/CodeBuild, or Google Cloud Build & Cloud Deploy.
+- **Advanced RAG:** Explore more sophisticated retrieval (e.g., query decomposition, HyDE), re-ranking, and context management strategies.
+- **LLM Evaluation & Fine-tuning:** Implement rigorous LLM evaluation frameworks (e.g., RAGAs, DeepEval) and potentially fine-tune models for specific claim types or legal domains.
+- **Scalability:** Transition services to cloud-native managed offerings (e.g., Azure AKS/ACR, AWS EKS/ECR, GCP GKE/Artifact Registry, managed PostgreSQL/Vector DBs/Object Storage).
+- **User Authentication & Authorization:** Implement robust authentication (e.g., OAuth2/OIDC) and role-based access control (RBAC).
+- **Production Monitoring & Logging:** Integrate comprehensive monitoring (e.g., Prometheus/Grafana, Datadog) and structured logging.
+- **Alternative Embedding/LLM Models:** Support for different embedding models (e.g., Sentence Transformers) and LLMs (e.g., Claude, Gemini, GPT-4) via standardized interfaces.
+- **UI Enhancements:** More sophisticated document viewers, annotation tools, and data visualization.
 
-2. Data Storage & Vector Search
-   - RDBMS: Azure Database for PostgreSQL, Amazon RDS (PostgreSQL), Google Cloud SQL.
-   - Object storage: Azure Blob Storage, Amazon S3, Google Cloud Storage for documents & audio.
-   - Vector database: ChromaDB ➔ Azure Cognitive Search vector store, Amazon OpenSearch Serverless (with vector plugin), or Vertex AI Matching Engine.
-
-3. Large Language Models & Embeddings
-   - Local Phi-4 via LM Studio ➔ Managed LLMs: Azure OpenAI (GPT-4), AWS Bedrock (Claude, Titan), GCP Vertex AI (Gemini).
-   - Embeddings: Replace LM Studio embeddings with cloud APIs or self-hosted embeddings service (e.g., Azure OpenAI embeddings, Amazon SageMaker, Vertex AI Embeddings API).
-
-4. Text-to-Speech
-   - Coqui TTS container ➔ Azure Speech Service, Amazon Polly, or Google Cloud Text-to-Speech.
-   - High-throughput streaming via serverless or auto-scaled microservices.
-
-5. API Gateway & Security
-   - FastAPI behind API gateway: Azure API Management, Amazon API Gateway + Cognito authorizers, GCP API Gateway + IAM.
-   - Authentication & authorization: OAuth2/OIDC via Azure AD, AWS Cognito, Google Identity Platform.
-   - Network security: VNet/VPC, private endpoints, firewall rules.
-
-6. Scalability & Resilience
-   - Horizontal autoscaling: Kubernetes HPA, AWS Fargate/EKS, GCP Cloud Run.
-   - Batch ingestion: Serverless functions (Azure Functions, AWS Lambda, Cloud Functions) for OCR & embedding pipelines.
-   - Asynchronous processing: Message queues (Azure Service Bus, Amazon SQS, Pub/Sub) and worker pools.
-   - Disaster recovery & multi-region failover.
-
-7. Monitoring, Logging, & Compliance
-   - Centralized logging: ELK stack or cloud logging services.
-   - Metrics & alerting: Prometheus, CloudWatch Alarms, Azure Alerts.
-   - Audit trails & data governance: GDPR/CCPA compliance, role-based access.
-
-8. Advanced Enhancements
-   - Model lifecycle management: Automated retraining, A/B testing, drift detection.
-   - Explainability & fairness: Integrate interpretability frameworks (SHAP, LIME).
-   - Reporting & analytics dashboard: Business intelligence with Power BI, QuickSight, or Looker.
-   - Plugin architecture: Custom connectors for additional data sources (e.g., Salesforce, SharePoint).
-
-By mapping each POC component to managed cloud services, Claims-AI can transition from a local prototype into a scalable, secure, and compliant enterprise application.
+This project serves as a stepping stone towards building a production-ready, AI-augmented claims analysis platform.
 
 ---
 
