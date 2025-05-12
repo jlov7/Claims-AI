@@ -15,7 +15,8 @@ import {
   Grid,
   GridItem,
   Heading,
-  Alert
+  Alert,
+  useToast
 } from '@chakra-ui/react';
 import { getBackendHealth, type HealthStatus } from '../services/healthService.ts';
 import FileUploader from '../components/FileUploader.tsx';
@@ -56,6 +57,8 @@ const HomePage: React.FC = () => {
   // Modal controls
   const { isOpen: isInfoSidebarOpen, onOpen: onInfoSidebarOpen, onClose: onInfoSidebarClose } = useDisclosure();
   const { isOpen: isRedTeamModalOpen, onOpen: onRedTeamModalOpen, onClose: onRedTeamModalClose } = useDisclosure();
+
+  const toast = useToast();
 
   useEffect(() => {
     if (isE2E) {
@@ -131,8 +134,51 @@ const HomePage: React.FC = () => {
 
   const startTour = () => {
     console.log('[HomePage] Start Tour button clicked');
-    setRunTour(true);
+    
+    // First ensure any previous tour is fully cleaned up
+    document.body.classList.remove('tour-active');
+    document.querySelectorAll('.joyride-highlighted').forEach(el => {
+      el.classList.remove('joyride-highlighted');
+    });
+    
+    // Force tour to stop before starting again
+    setRunTour(false);
+    
+    // Add delay to ensure DOM is ready and previous tour is fully stopped
+    setTimeout(() => {
+      // Add class to body for CSS styling during tour
+      document.body.classList.add('tour-active');
+      
+      // Ensure all tour elements have proper z-index and add highlighting class
+      document.querySelectorAll('[id^="tour-"]').forEach(el => {
+        console.log('[HomePage] Found tour target:', el.id);
+        el.classList.add('joyride-highlighted');
+      });
+      
+      toast({
+        title: 'Guided Tour Started',
+        description: 'Follow the steps to learn about Claims-AI!',
+        status: 'info',
+        duration: 3000
+      });
+      
+      // Start the tour after a brief delay to ensure state is reset
+      setTimeout(() => {
+        setRunTour(true);
+      }, 50);
+    }, 500);
   };
+
+  // Handle tour completion and cleanup
+  useEffect(() => {
+    if (!runTour) {
+      document.body.classList.remove('tour-active');
+      // Clean up highlights when tour is stopped
+      document.querySelectorAll('.joyride-highlighted').forEach(el => {
+        el.classList.remove('joyride-highlighted');
+      });
+    }
+  }, [runTour]);
 
   console.log(`[HomePage] Rendering. uiReady: ${uiReady}, runTour: ${runTour}`);
 
