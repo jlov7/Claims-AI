@@ -25,29 +25,11 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { runRedTeamEvaluation } from '../services/redteamService.ts';
+import { RedTeamAttempt, SummaryStats, RedTeamRunResult } from '../models/redteam.ts';
 
 interface RedTeamModalProps {
   isOpen: boolean;
   onClose: () => void;
-}
-
-interface SummaryStats {
-  prompts_run?: number;
-  categories_tested?: number;
-  // Add other summary stats properties as needed
-}
-
-interface RedTeamAttempt {
-  category?: string;
-  prompt?: string;
-  response?: string;
-  risk_level?: string;
-  score?: number;
-}
-
-interface RedTeamResponse {
-  results: RedTeamAttempt[];
-  summary_stats: SummaryStats;
 }
 
 const RedTeamModal: React.FC<RedTeamModalProps> = ({ isOpen, onClose }) => {
@@ -61,12 +43,12 @@ const RedTeamModal: React.FC<RedTeamModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     setError(null);
     try {
-      const response: RedTeamResponse = await runRedTeamEvaluation();
-      setResults(response.results || []);
-      setSummary(response.summary_stats || {});
+      const runResult: RedTeamRunResult = await runRedTeamEvaluation();
+      setResults(runResult.attempts);
+      setSummary(runResult.summary_stats);
       toast({
         title: "Red Team Evaluation Complete",
-        description: `Ran ${response.summary_stats?.prompts_run || 0} prompts across ${response.summary_stats?.categories_tested || 0} categories`,
+        description: `Ran ${runResult.summary_stats.total_prompts} prompts with ${runResult.summary_stats.successful_executions} successful executions`,
         status: "success",
         duration: 5000,
         isClosable: true
@@ -129,8 +111,7 @@ const RedTeamModal: React.FC<RedTeamModalProps> = ({ isOpen, onClose }) => {
             {summary && (
               <Box borderWidth="1px" borderRadius="lg" p={4} bg="gray.50">
                 <Heading size="md" mb={2}>Summary</Heading>
-                <Text>Prompts Run: {summary.prompts_run}</Text>
-                <Text>Categories Tested: {summary.categories_tested}</Text>
+                <Text>Prompts Run: {summary.total_prompts}</Text>
                 {summary.successful_executions !== undefined && (
                   <Text>Successful Executions: {summary.successful_executions}</Text>
                 )}
@@ -150,7 +131,7 @@ const RedTeamModal: React.FC<RedTeamModalProps> = ({ isOpen, onClose }) => {
                         <AccordionButton>
                           <Box flex="1" textAlign="left">
                             <Text fontWeight="bold">
-                              {attempt.prompt_id}: {attempt.category}
+                              {attempt.prompt_id}
                             </Text>
                           </Box>
                           <AccordionIcon />

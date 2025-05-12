@@ -32,12 +32,14 @@ import {
   useColorModeValue,
   Heading,
   Center,
+  Card,
+  SkeletonText,
 } from '@chakra-ui/react';
 import { FaPlay, FaStop, FaSpinner } from 'react-icons/fa6';
-import { FiMessageSquare, FiThumbsUp, FiThumbsDown, FiCopy, FiRefreshCw, FiCheckCircle, FiAlertCircle, FiAlertTriangle, FiInfo, FiPlay as FiPlayCircle, FiStopCircle, FiLoader } from 'react-icons/fi';
+import { FiMessageSquare, FiThumbsUp, FiThumbsDown, FiCopy, FiRefreshCw, FiCheckCircle, FiAlertCircle, FiAlertTriangle, FiInfo, FiPlay as FiPlayCircle, FiStopCircle, FiLoader, FiUser, FiCpu } from 'react-icons/fi';
 import { askQuestion } from '../services/askService.ts';
-import { type AskRequest, type AskResponse, ChatMessage, SourceDocument } from '../models/chat.ts';
-import { generateSpeech } from '../services/speechService.js';
+import { generateSpeech } from '../services/speechService.ts';
+import type { ChatMessage, SourceDocument } from '../models/chat.ts';
 import { v4 as uuidv4 } from 'uuid';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -60,9 +62,16 @@ export interface ChatPanelProps {
   onNewAiAnswer?: (answerText: string) => void;
 }
 
+// Extend the interface locally for any missing fields
+interface ExtendedChatMessage extends ChatMessage {
+  isPlaying?: boolean;
+  isHealing?: boolean;
+  audioUrl?: string;
+}
+
 const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
   const isE2E = import.meta.env.VITE_E2E_TESTING === 'true';
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ExtendedChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +83,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
   const [activeAudioMessageId, setActiveAudioMessageId] = useState<string | null>(null);
   const [isFetchingAudio, setIsFetchingAudio] = useState<string | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
+
+  const [showSourceForMessage, setShowSourceForMessage] = useState<string | null>(null);
+  const { onCopy } = useClipboard('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -95,7 +107,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
     };
   }, [audioRef.current]);
 
-  const handlePlayAudio = async (message: ChatMessage) => {
+  const handlePlayAudio = async (message: ExtendedChatMessage) => {
     if (!message.text || message.sender === 'user') return;
 
     if (isPlayingAudio === message.id && audioRef.current) {
@@ -153,11 +165,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
     setLastMessageConfidence(null); // Clear confidence before new message
 
     // Add temporary AI thinking message
-    const thinkingMessageId = uuidv4(); // Use uuid for string id
+    const thinkingMessageId = uuidv4();
     setMessages(prev => [
       ...prev,
       {
-        text: '', // Placeholder for spinner/text
+        text: '', 
         sender: 'ai',
         isLoading: true,
         id: thinkingMessageId,
@@ -165,19 +177,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
     ]);
 
     try {
-      const response = await askQuestion(userMessage); // Corrected: pass only the string
+      const response = await askQuestion(userMessage);
 
       // Update thinking message with actual response
       setMessages(prev =>
         prev.map(msg =>
-          msg.id === thinkingMessageId // Comparison is now string vs string
+          msg.id === thinkingMessageId
             ? {
                 ...msg,
                 text: response.answer,
-                sources: response.sources, // Use 'sources' from response
+                sources: response.sources,
                 confidence_score: response.confidence_score,
-                self_heal_attempts: response.self_heal_attempts, // Add self-heal attempts
-                isLoading: false, // Mark as loaded
+                self_heal_attempts: response.self_heal_attempts,
+                isLoading: false,
               }
             : msg
         )
@@ -192,169 +204,277 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
        // Update thinking message to show error
        setMessages(prev =>
         prev.map(msg =>
-          msg.id === thinkingMessageId // Comparison is now string vs string
-            ? { ...msg, text: 'Error fetching response.', isLoading: false, error: true } // Use 'error' field, static text
+          msg.id === thinkingMessageId
+            ? { ...msg, text: 'Error fetching response.', isLoading: false, error: true }
             : msg
         )
       );
       setLastMessageConfidence(null);
       toast({ title: 'Error', description: err.message || 'Could not get answer.', status: 'error', duration: 3000, isClosable: true });
     } finally {
-      // Remove isLoading flag from the specific message if it wasn't updated (e.g., error occurred before response)
-      // Or ensure isLoading is set false in both try/catch blocks for the specific message
-       setMessages(prev =>
+      setMessages(prev =>
         prev.map(msg =>
-          msg.id === thinkingMessageId ? { ...msg, isLoading: false } : msg // Comparison is now string vs string
+          msg.id === thinkingMessageId ? { ...msg, isLoading: false } : msg
         )
       );
-      setIsLoading(false); // Overall loading state
+      setIsLoading(false);
     }
   };
 
-  const userMessageBg = useColorModeValue('blue.50', 'blue.900');
-  const aiMessageBg = useColorModeValue('gray.100', 'gray.700');
+  const userMessageBg = useColorModeValue('brand.500', 'brand.300');
+  const aiMessageBg = useColorModeValue('gray.50', 'gray.700');
+  const inputBg = useColorModeValue('white', 'gray.700');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+
+  const stopSpeaking = (messageId: string) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlayingAudio(null);
+    }
+  };
+
+  const speakText = (text: string, messageId: string) => {
+    // Reuse existing handlePlayAudio function
+    const message = messages.find(m => m.id === messageId);
+    if (message) {
+      handlePlayAudio(message);
+    }
+  };
+
+  const toggleSourcesForMessage = (messageId: string) => {
+    if (showSourceForMessage === messageId) {
+      setShowSourceForMessage(null);
+    } else {
+      setShowSourceForMessage(messageId);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendMessage();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const isAnySpeaking = isPlayingAudio !== null;
 
   return (
-    <Box borderWidth="1px" borderRadius="lg" p={4} height="500px" display="flex" flexDirection="column" id="tour-chat-panel">
-      <Heading size="md" mb={1}>Ask About Documents (RAG)</Heading>
-      <Text fontSize="sm" color="gray.600" mb={3}>
-        Chat with the AI to get answers based on uploaded documents.
+    <Card borderWidth="2px" borderRadius="lg" p={6} height="500px" display="flex" flexDirection="column" id="tour-chat-panel" className="tour-highlightable" bg="white" boxShadow="md">
+      <Heading size="lg" mb={4} color="brand.600">Ask About Documents</Heading>
+      <Text fontSize="md" color="gray.600" mb={4}>
+        Ask questions about your uploaded documents to get AI-powered insights and answers.
       </Text>
-      <Box flexGrow={1} overflowY="auto" ref={messagesEndRef} mb={4} pr={2}>
-        <VStack spacing={4} align="stretch">
-          {messages.length === 0 && !isLoading && (
-            <Center h="100%" flexDirection="column">
-              <Icon as={FiMessageSquare} boxSize="40px" color="gray.400" mb={3} />
-              <Text color="gray.500">Ask a question to start the chat.</Text>
+      
+      <Flex direction="column" height="calc(100% - 130px)">
+        {/* Messages container */}
+        <Box 
+          flex="1" 
+          overflowY="auto" 
+          mb={4} 
+          p={3}
+          borderWidth="1px"
+          borderColor={borderColor}
+          borderRadius="md"
+          bg={aiMessageBg}
+        >
+          {messages.length === 0 ? (
+            <Center height="100%" flexDirection="column">
+              <Icon as={FiMessageSquare} boxSize={10} color="gray.300" mb={3} />
+              <Text color="gray.500" fontWeight="medium">No messages yet</Text>
+              <Text color="gray.400" fontSize="sm">Ask a question about your uploaded documents</Text>
             </Center>
-          )}
-          {messages.map((message, index) => (
-            <Box
-              key={message.id}
-              alignSelf={message.sender === 'user' ? 'flex-end' : 'flex-start'}
-              bg={message.sender === 'user' ? userMessageBg : aiMessageBg}
-              p={3}
-              borderRadius="lg"
-              maxWidth="80%"
-              boxShadow={message.sender === 'ai' ? getConfidenceAttributes(message.confidence_score).color : 'sm'}
-              sx={{
-                animation: message.sender === 'ai' ? `aiMessageFadeIn 0.5s ease-out` : 'none',
-                '@keyframes aiMessageFadeIn': {
-                  from: { opacity: 0, transform: 'translateY(10px)' },
-                  to: { opacity: 1, transform: 'translateY(0)' },
-                },
-              }}
-              className={message.sender === 'ai' ? 'ai-message' : 'user-message'}
-            >
-              <Flex direction={message.sender === 'user' ? 'row-reverse' : 'row'}>
+          ) : (
+            <VStack spacing={4} align="stretch">
+              {messages.map((message: ExtendedChatMessage, index: number) => (
                 <Box
-                  bg={message.sender === 'user' ? userMessageBg : aiMessageBg}
-                  color={message.sender === 'user' ? 'white' : 'black'}
-                  px={4}
-                  py={2}
-                  borderRadius="lg"
-                  maxWidth="70%"
-                  borderColor={message.sender === 'ai' ? (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) : 'transparent'}
-                  boxShadow={message.sender === 'ai' && (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) !== 'transparent' ? `0 0 8px 1px ${message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color}` : 'none'}
-                  borderWidth={message.sender === 'ai' && (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) !== 'transparent' ? '2px' : '0px'}
+                  key={message.id}
+                  alignSelf={message.sender === 'user' ? 'flex-end' : 'flex-start'}
+                  maxWidth="85%"
+                  className={message.sender === 'ai' ? 'ai-message' : 'user-message'}
                 >
-                  <Box className="markdown-content" sx={{ '& p': { mb: 2 }, '& ul': { ml: 4, mb: 2 }, '& ol': { ml: 4, mb: 2 } }}>
-                    <ReactMarkdown
-                      children={message.text}
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        code(props: any) { // Using any for simplicity, can refine later if needed
-                          const { children, className, node, ...rest } = props;
-                          const match = /language-(\w+)/.exec(className || '');
-                          return match ? (
-                            <CodeBlock language={match[1]} value={String(children).replace(/\n$/, '')} {...rest} />
-                          ) : (
-                            <Code className={className} {...rest}>
-                              {children}
-                            </Code>
-                          );
-                        },
-                      }}
-                    />
-                  </Box>
-                  {message.sender === 'ai' && message.sources && message.sources.length > 0 && (
-                    <Box mt={2} fontSize="sm">
-                      <Text fontWeight="bold">Sources:</Text>
-                      {message.sources.map((source, idx) => (
-                        <span className="chakra-tag" key={idx} title={`${source.file_name}, Chunk: ${source.chunk_id}`} style={{ margin: '0 4px 4px 0', padding: '0.25em 0.5em', backgroundColor: '#EDF2F7', borderRadius: '0.25em', fontSize: '0.75rem', display: 'inline-block' }}>
-                          {source.file_name ? source.file_name.substring(0, 20) + '...' : 'Source ' + (idx + 1)}
-                        </span>
-                      ))}
+                  <Flex direction={message.sender === 'user' ? 'row-reverse' : 'row'} alignItems="flex-start">
+                    {/* Message avatar/icon */}
+                    <Box 
+                      mr={message.sender === 'user' ? 0 : 2} 
+                      ml={message.sender === 'user' ? 2 : 0}
+                    >
+                      <Icon 
+                        as={message.sender === 'user' ? FiUser : FiCpu} 
+                        boxSize={6} 
+                        color={message.sender === 'user' ? 'brand.500' : 'gray.500'} 
+                        bg={message.sender === 'user' ? 'white' : 'white'}
+                        p={1}
+                        borderRadius="full"
+                        borderWidth="1px"
+                        borderColor={borderColor}
+                      />
                     </Box>
-                  )}
-                  {message.sender === 'ai' && message.confidence_score !== undefined && (
-                    <Tooltip label={confidenceTooltip} placement="top" hasArrow>
-                      <HStack mt={1} spacing={1} id={`tour-confidence-${message.id}`}>
-                        <Icon as={getConfidenceAttributes(message.confidence_score).icon} color={getConfidenceAttributes(message.confidence_score).color} />
-                        <Text fontSize="xs" color={getConfidenceAttributes(message.confidence_score).color} fontWeight="medium">
-                          Confidence: {message.confidence_score}/5
-                        </Text>
-                      </HStack>
-                    </Tooltip>
-                  )}
-                  {message.isHealing && (
-                    <Tooltip label={selfHealTooltip} placement="top" hasArrow>
-                      <Tag size="sm" colorScheme="purple" mt={2} variant="subtle">
-                        <TagLeftIcon as={FiRefreshCw} />
-                        <TagLabel>Self-healed {message.self_heal_attempts ? `(${message.self_heal_attempts})` : ''}</TagLabel>
-                      </Tag>
-                    </Tooltip>
-                  )}
-                  {message.sender === 'ai' && !message.isLoading && message.text && (
-                    <IconButton 
-                      aria-label={isPlayingAudio === message.id ? "Stop speech" : "Play speech"}
-                      icon={isFetchingAudio === message.id ? <Spinner size="xs" /> : isPlayingAudio === message.id ? <FaStop /> : <FaPlay />}
-                      size="xs"
-                      variant="ghost"
-                      onClick={() => handlePlayAudio(message)}
-                      isDisabled={isFetchingAudio === message.id}
-                      mt={1}
-                      ml={1}
-                      id={`tour-voice-over-button-${message.id}`}
-                    />
-                  )}
+                    
+                    {/* Message content */}
+                    <Box
+                      bg={message.sender === 'user' ? userMessageBg : 'white'}
+                      color={message.sender === 'user' ? 'white' : 'black'}
+                      px={4}
+                      py={3}
+                      borderRadius="lg"
+                      borderColor={message.sender === 'ai' ? (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) : 'transparent'}
+                      boxShadow={message.sender === 'ai' && (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) !== 'transparent' ? `0 0 0 1px ${message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color}` : 'sm'}
+                    >
+                      {/* Message text content */}
+                      {message.sender === 'ai' && (
+                        <Flex justify="space-between" mb={2}>
+                          <Tag size="sm" colorScheme={message.confidence_score ? (message.confidence_score >= 4 ? 'green' : message.confidence_score >= 3 ? 'yellow' : 'red') : 'gray'}>
+                            <TagLeftIcon as={getConfidenceAttributes(message.confidence_score).icon} />
+                            <TagLabel>Confidence: {message.confidence_score || 'N/A'}/5</TagLabel>
+                          </Tag>
+                          <HStack>
+                            {isPlayingAudio === message.id ? (
+                              <IconButton 
+                                aria-label="Stop speaking" 
+                                icon={<FiStopCircle />} 
+                                size="xs" 
+                                onClick={() => stopSpeaking(message.id)}
+                                variant="ghost"
+                              />
+                            ) : (
+                              <IconButton 
+                                aria-label="Speak answer" 
+                                icon={<FiPlayCircle />} 
+                                size="xs" 
+                                onClick={() => speakText(message.text, message.id)}
+                                isDisabled={isAnySpeaking}
+                                variant="ghost"
+                              />
+                            )}
+                            <IconButton 
+                              aria-label="Copy to clipboard" 
+                              icon={<FiCopy />} 
+                              size="xs" 
+                              onClick={() => onCopy(message.text)}
+                              variant="ghost"
+                            />
+                          </HStack>
+                        </Flex>
+                      )}
+                      
+                      {/* Render text content with Markdown support */}
+                      <Box className="message-content">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]} 
+                          components={{
+                            code({node, inline, className, children, ...props}: any) {
+                              const match = /language-(\w+)/.exec(className || '')
+                              return !inline && match ? (
+                                <CodeBlock
+                                  language={match[1]}
+                                  value={String(children).replace(/\n$/, '')}
+                                  {...props}
+                                />
+                              ) : (
+                                <Code className={className} {...props}>
+                                  {children}
+                                </Code>
+                              )
+                            }
+                          }}
+                        >
+                          {message.text}
+                        </ReactMarkdown>
+                      </Box>
+                      
+                      {/* Show sources if available */}
+                      {message.sender === 'ai' && message.sources && message.sources.length > 0 && (
+                        <Box mt={3}>
+                          <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1}>
+                            Sources:
+                          </Text>
+                          <Collapse in={showSourceForMessage === message.id} animateOpacity>
+                            <VStack spacing={2} align="stretch" mt={1} fontSize="xs">
+                              {message.sources.map((source, i) => (
+                                <Box 
+                                  key={i} 
+                                  p={2} 
+                                  borderRadius="md" 
+                                  bg="gray.50" 
+                                  fontSize="xs"
+                                  borderWidth="1px"
+                                  borderColor={borderColor}
+                                >
+                                  <Text fontWeight="bold">
+                                    {source.file_name || 'Unknown'} {source.metadata?.score !== undefined && `(Relevance: ${Math.round(source.metadata.score * 100)}%)`}
+                                  </Text>
+                                  <Text noOfLines={2} fontSize="xs" color="gray.600">
+                                    {source.page_content || 'No content available'}
+                                  </Text>
+                                </Box>
+                              ))}
+                            </VStack>
+                          </Collapse>
+                          <Button 
+                            variant="link" 
+                            size="xs" 
+                            onClick={() => toggleSourcesForMessage(message.id)}
+                            mt={1}
+                            color="brand.500"
+                          >
+                            {showSourceForMessage === message.id ? 'Hide Sources' : 'Show Sources'}
+                          </Button>
+                        </Box>
+                      )}
+                      
+                      {/* Self-healing note if applicable */}
+                      {message.sender === 'ai' && message.isHealing && (
+                        <Alert status="info" size="sm" mt={2} borderRadius="md">
+                          <AlertIcon />
+                          <Text fontSize="xs">This answer was improved using AI self-correction</Text>
+                        </Alert>
+                      )}
+                    </Box>
+                  </Flex>
                 </Box>
-              </Flex>
-              {message.error && (
-                <Text color="red.500" fontSize="sm" mt={1} textAlign={message.sender === 'user' ? "right" : "left"}>
-                  Error: Failed to load response.
-                </Text>
-              )}
-            </Box>
-          ))}
-        </VStack>
-      </Box>
-      <Flex mt={1} id="tour-chat-input-area">
-        <Tooltip label="Type your question about the uploaded documents here. Press Enter to send." placement="top" hasArrow>
-          <Textarea
-            id="tour-chat-input"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask a question about your documents..."
-            mr={2}
-            rows={1} // Keep it compact initially
-            resize="none" // Prevent manual resize
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-          />
-        </Tooltip>
-        <Tooltip label="Send your question to the AI." placement="top" hasArrow>
-          <Button onClick={handleSendMessage} colorScheme="blue" isLoading={isLoading}>
-            Send
-          </Button>
-        </Tooltip>
+              ))}
+            </VStack>
+          )}
+        </Box>
+        
+        {/* Input area */}
+        <Box id="tour-chat-input-area" className="tour-highlightable">
+          <form onSubmit={handleSubmit}>
+            <Flex>
+              <Input
+                placeholder="Ask a question about your documents..."
+                value={inputValue}
+                onChange={handleInputChange}
+                size="lg"
+                borderRadius="md"
+                bg={inputBg}
+                focusBorderColor="brand.500"
+                disabled={isLoading}
+                mr={2}
+                p={6}
+              />
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                loadingText=""
+                colorScheme="brand"
+                size="lg"
+              >
+                Send
+              </Button>
+            </Flex>
+            {error && (
+              <Alert status="error" mt={2} size="sm" borderRadius="md">
+                <AlertIcon />
+                {error}
+              </Alert>
+            )}
+          </form>
+        </Box>
       </Flex>
-      <audio ref={audioRef} />
-    </Box>
+    </Card>
   );
 };
 

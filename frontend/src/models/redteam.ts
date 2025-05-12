@@ -14,6 +14,7 @@ export interface RedTeamPrompt {
 export interface RedTeamAttempt {
   prompt_id: string;
   prompt_text: string;
+  category?: string;
   response_text: string;
   evaluation_notes?: string;
 }
