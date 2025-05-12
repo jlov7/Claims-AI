@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Box, VStack, Text, Icon, useToast, Button, Input, List, ListItem, Progress, HStack, Tag, CloseButton, Center, Spinner, Tooltip, Heading, useColorModeValue } from "@chakra-ui/react";
+import { Card, CardHeader, CardBody, Box, VStack, Text, Icon, useToast, Button, Input, List, ListItem, Progress, HStack, Tag, CloseButton, Center, Spinner, Tooltip, Heading, useColorModeValue } from "@chakra-ui/react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud, FiFileText, FiTrash2, FiCheckCircle, FiXCircle, FiAlertCircle } from "react-icons/fi";
 import { v4 as uuidv4 } from 'uuid';
@@ -119,6 +119,7 @@ const FileUploader = () => {
               progress: 100,
               message: backendResult.message,
               backendFileId: backendResult.document_id,
+              ingested: backendResult.ingested
             };
           }
           return ufs; 
@@ -129,7 +130,7 @@ const FileUploader = () => {
 
       toast({
         title: response.overall_status,
-        description: response.results.filter(r => !r.success).length > 0 ? "Some files failed to upload." : "All files processed.",
+        description: `${response.uploaded || 0} files uploaded, ${response.ingested || 0} ingested. ${response.errors && response.errors.length > 0 ? "Some files failed." : ""}`,
         status: response.results.filter(r => !r.success).length > 0 ? "warning" : "success",
         duration: 5000,
         isClosable: true,
@@ -162,13 +163,16 @@ const FileUploader = () => {
   };
 
   return (
-    <Box borderWidth="1px" borderRadius="lg" p={4}>
-      <Heading size="md" mb={4}>Upload Claim Documents</Heading>
-       <Tooltip 
-         label="Drag & drop PDF, DOCX, or TIFF files here, or click to select files."
-         placement="top"
-         hasArrow
-       >
+    <Card borderWidth="1px" borderRadius="lg" overflow="hidden">
+      <CardHeader>
+        <Heading size="md">Upload Claim Documents</Heading>
+      </CardHeader>
+      <CardBody p={4}>
+        <Tooltip 
+          label="Drag & drop PDF, DOCX, or TIFF files here, or click to select files."
+          placement="top"
+          hasArrow
+        >
           <Center
             p={10}
             {...getRootProps()} 
@@ -189,75 +193,86 @@ const FileUploader = () => {
           </Center>
         </Tooltip>
 
-      {filesToUpload.length > 0 && (
-        <VStack spacing={3} align="stretch" borderWidth={1} borderRadius="md" p={4} maxH="300px" overflowY="auto">
-          {filesToUpload.map(ufs => (
-            <Box 
-              key={ufs.id} 
-              className="chakra-table__tr" 
-              borderWidth={1} 
-              borderRadius="md" 
-              p={3} 
-              bg={ufs.status === 'success' ? successBg : ufs.status === 'error' ? errorBg : defaultBg} // Dynamic background
-              boxShadow="sm"
-            >
-              <HStack justify="space-between">
-                <HStack spacing={3}>
-                  <Icon as={getFileIcon(ufs.file.type)} w={5} h={5} color="gray.600"/>
-                  <VStack align="start" spacing={0}>
-                    <Text fontSize="sm" fontWeight="medium" noOfLines={1}>{ufs.file.name}</Text>
-                    <Text fontSize="xs" color="gray.500">{(ufs.file.size / 1024 / 1024).toFixed(2)} MB</Text>
-                  </VStack>
+        {filesToUpload.length > 0 && (
+          <VStack spacing={3} align="stretch" borderWidth={1} borderRadius="md" p={4} maxH="300px" overflowY="auto">
+            {filesToUpload.map(ufs => (
+              <Box 
+                key={ufs.id} 
+                className="chakra-table__tr" 
+                borderWidth={1} 
+                borderRadius="md" 
+                p={3} 
+                bg={ufs.status === 'success' ? successBg : ufs.status === 'error' ? errorBg : defaultBg} // Dynamic background
+                boxShadow="sm"
+              >
+                <HStack justify="space-between">
+                  <HStack spacing={3}>
+                    <Icon as={getFileIcon(ufs.file.type)} w={5} h={5} color="gray.600"/>
+                    <VStack align="start" spacing={0}>
+                      <Text fontSize="sm" fontWeight="medium" noOfLines={1}>{ufs.file.name}</Text>
+                      <Text fontSize="xs" color="gray.500">{(ufs.file.size / 1024 / 1024).toFixed(2)} MB</Text>
+                    </VStack>
+                  </HStack>
+                  <HStack spacing={2}>
+                      {ufs.status === 'pending' && <Tag size="sm" colorScheme="gray">Pending</Tag>}
+                      {ufs.status === 'uploading' && <Spinner size="sm" color="blue.500"/>}
+                      {ufs.status === 'success' && (
+                        ufs.ingested ? (
+                          <Tooltip label="File processed and ingested into search database">
+                            <Icon as={FiCheckCircle} data-icon="check-circle" color="green.500" w={5} h={5}/>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip label="File processed but not ingested into search database">
+                            <Icon as={FiAlertCircle} color="yellow.500" w={5} h={5}/>
+                          </Tooltip>
+                        )
+                      )}
+                      {ufs.status === 'error' && <Icon as={FiXCircle} color="red.500" w={5} h={5}/>}
+                      <CloseButton size="sm" onClick={() => removeFile(ufs.id)} isDisabled={isUploading && ufs.status === 'uploading'} />
+                  </HStack>
                 </HStack>
-                <HStack spacing={2}>
-                    {ufs.status === 'pending' && <Tag size="sm" colorScheme="gray">Pending</Tag>}
-                    {ufs.status === 'uploading' && <Spinner size="sm" color="blue.500"/>}
-                    {ufs.status === 'success' && <Icon as={FiCheckCircle} data-icon="check-circle" color="green.500" w={5} h={5}/>}
-                    {ufs.status === 'error' && <Icon as={FiXCircle} color="red.500" w={5} h={5}/>}
-                    <CloseButton size="sm" onClick={() => removeFile(ufs.id)} isDisabled={isUploading && ufs.status === 'uploading'} />
-                </HStack>
-              </HStack>
-              {(ufs.status === 'uploading' || ufs.progress || ufs.status === 'success' || ufs.status === 'error') && ufs.progress !== undefined && (
-                <Progress 
-                  value={ufs.status === 'success' ? 100 : ufs.progress} 
-                  size="xs" 
-                  colorScheme={ufs.status === 'error' ? 'red' : 'blue'} 
-                  mt={2} 
-                  borderRadius="sm"
-                  hasStripe={ufs.status === 'uploading'}
-                  isAnimated={ufs.status === 'uploading'}
-                />
-              )}
-              {(ufs.status === 'success' || ufs.status === 'error') && ufs.message && (
-                <Text 
-                  fontSize="xs" 
-                  color={ufs.status === 'error' ? 'red.600' : 'green.600'} 
-                  mt={1}
-                >
-                  {ufs.message}
-                </Text>
-              )}
-            </Box>
-          ))}
-        </VStack>
-      )}
+                {(ufs.status === 'uploading' || ufs.progress || ufs.status === 'success' || ufs.status === 'error') && ufs.progress !== undefined && (
+                  <Progress 
+                    value={ufs.status === 'success' ? 100 : ufs.progress} 
+                    size="xs" 
+                    colorScheme={ufs.status === 'error' ? 'red' : 'blue'} 
+                    mt={2} 
+                    borderRadius="sm"
+                    hasStripe={ufs.status === 'uploading'}
+                    isAnimated={ufs.status === 'uploading'}
+                  />
+                )}
+                {(ufs.status === 'success' || ufs.status === 'error') && ufs.message && (
+                  <Text 
+                    fontSize="xs" 
+                    color={ufs.status === 'error' ? 'red.600' : 'green.600'} 
+                    mt={1}
+                  >
+                    {ufs.message}
+                  </Text>
+                )}
+              </Box>
+            ))}
+          </VStack>
+        )}
 
-      {filesToUpload.length > 0 && (
-        <Button 
-          colorScheme="blue" 
-          onClick={handleUpload} 
-          isLoading={isUploading}
-          loadingText="Uploading..."
-          leftIcon={<Icon as={FiUploadCloud}/>}
-          isDisabled={isUploading || !filesToUpload.some(f => f.status === 'pending' || f.status === 'error')}
-        >
-          Upload Selected ({filesToUpload.filter(f => f.status === 'pending' || f.status === 'error').length})
-        </Button>
-      )}
-      {isUploading && filesToUpload.every(f=> f.status !== 'pending' && f.status !== 'error') && filesToUpload.length > 0 && (
-          <Text fontSize="sm" color="gray.500" textAlign="center">All selected files are currently uploading or have completed.</Text>
-      )}
-    </Box>
+        {filesToUpload.length > 0 && (
+          <Button 
+            colorScheme="blue" 
+            onClick={handleUpload} 
+            isLoading={isUploading}
+            loadingText="Uploading..."
+            leftIcon={<Icon as={FiUploadCloud}/>}
+            isDisabled={isUploading || !filesToUpload.some(f => f.status === 'pending' || f.status === 'error')}
+          >
+            Upload Selected ({filesToUpload.filter(f => f.status === 'pending' || f.status === 'error').length})
+          </Button>
+        )}
+        {isUploading && filesToUpload.every(f=> f.status !== 'pending' && f.status !== 'error') && filesToUpload.length > 0 && (
+            <Text fontSize="sm" color="gray.500" textAlign="center">All selected files are currently uploading or have completed.</Text>
+        )}
+      </CardBody>
+    </Card>
   );
 };
 

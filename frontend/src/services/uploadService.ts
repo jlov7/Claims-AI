@@ -37,6 +37,9 @@ export const uploadFiles = async (files: File[]): Promise<BatchUploadResponse> =
           success: false,
           message: errorMsg,
         })),
+        uploaded: 0,
+        ingested: 0,
+        errors: [errorMsg]
       };
     }
     return {
@@ -46,6 +49,9 @@ export const uploadFiles = async (files: File[]): Promise<BatchUploadResponse> =
         success: false,
         message: 'Network error or unexpected issue during upload.',
       })),
+      uploaded: 0,
+      ingested: 0,
+      errors: ['Network error or unexpected issue during upload.']
     };
   }
 }; 
