@@ -1,4 +1,4 @@
-import { SourceDocument } from './chat.js'; // Assuming SourceDocument might be reused
+import { SourceDocument } from './chat.ts'; // Assuming SourceDocument might be reused
 
 // ---------------------------------------------------------------------------
 //  Types shared by Red‑Team UI and service calls

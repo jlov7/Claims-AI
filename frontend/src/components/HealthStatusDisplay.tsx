@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Heading, Spinner, Tag, Text } from '@chakra-ui/react';
-import type { HealthStatus } from '../services/healthService.js';
+import type { HealthStatus } from '../services/healthService.ts';
 
 interface HealthStatusDisplayProps {
   health: HealthStatus | null;

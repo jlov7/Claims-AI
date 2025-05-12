@@ -1,5 +1,5 @@
-import apiClient from './apiClient.js';
-import { RedTeamRunResult } from '../models/redteam.js';
+import apiClient from './apiClient.ts';
+import { RedTeamRunResult } from '../models/redteam.ts';
 
 export const runRedTeamEvaluation = async (): Promise<RedTeamRunResult> => {
   try {
