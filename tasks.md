@@ -212,11 +212,11 @@ Legend: ☐ Todo | ☑ Done | 🛠 Automated by script | 🔍 Cursor-prompt (hum
   - [x] Create `.github/workflows/ci.yml`.
   - [x] Linting (Ruff, Black, Prettier for frontend).
   - [x] Backend tests (pytest).
-  - [ ] Frontend tests (e.g., Jest/Vitest if implemented).
-  - [ ] Playwright E2E tests.
+  - [x] Frontend tests (Vitest + React Testing Library implemented).
+  - [ ] Playwright E2E tests (scaffold only; defer full implementation until LM Studio container or CI stub is available).
   - [x] Build Docker images (backend).
-  - [ ] (Optional) Publish images to GHCR (GitHub Container Registry).
-  - [x] Configure workflow to fail build if test coverage drops or tests fail.
+  - [x] (Optional) Publish images to GHCR (GitHub Container Registry) – backend image publishing implemented via CI; frontend publishing can be added once a `frontend/Dockerfile` is in place.
+  - [ ] Configure workflow to fail build if test coverage drops or tests fail.
 - [x] 🔍 **Logging:** Explain CI setup, test strategies, and interpret initial CI results in `explanations.txt`.
 
 ### Phase 7 – Documentation & Demo Assets

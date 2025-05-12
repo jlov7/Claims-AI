@@ -19,5 +19,10 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env.VITE_E2E_TESTING': JSON.stringify(env.VITE_E2E_TESTING),
     },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: 'src/setupTests.ts'
+    }
   }
 })
