@@ -267,6 +267,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
         Ask questions about your uploaded documents to get AI-powered insights and answers.
       </Text>
       
+      {/* Add confidence score explainer */}
+      <Alert status="info" mb={4} borderRadius="md" variant="subtle">
+        <AlertIcon />
+        <Box>
+          <Text fontWeight="bold">Confidence Scoring System</Text>
+          <Text fontSize="sm">AI answers include a confidence score (1-5) with color indicators:
+            <Badge colorScheme="green" mx={1}>Green (4-5)</Badge>
+            <Badge colorScheme="yellow" mx={1}>Yellow (3)</Badge>
+            <Badge colorScheme="red" mx={1}>Red (1-2)</Badge>
+            Low scores trigger automatic self-healing to improve answers.
+          </Text>
+        </Box>
+      </Alert>
+      
       <Flex direction="column" height="calc(100% - 130px)">
         {/* Messages container */}
         <Box 
@@ -320,43 +334,62 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onNewAiAnswer }) => {
                       py={3}
                       borderRadius="lg"
                       borderColor={message.sender === 'ai' ? (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) : 'transparent'}
-                      boxShadow={message.sender === 'ai' && (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) !== 'transparent' ? `0 0 0 1px ${message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color}` : 'sm'}
+                      boxShadow={message.sender === 'ai' && (message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color) !== 'transparent' ? `0 0 0 3px ${message.isHealing ? 'purple.500' : getConfidenceAttributes(message.confidence_score).color}` : 'sm'}
                     >
                       {/* Message text content */}
                       {message.sender === 'ai' && (
-                        <Flex justify="space-between" mb={2}>
-                          <Tag size="sm" colorScheme={message.confidence_score ? (message.confidence_score >= 4 ? 'green' : message.confidence_score >= 3 ? 'yellow' : 'red') : 'gray'}>
-                            <TagLeftIcon as={getConfidenceAttributes(message.confidence_score).icon} />
-                            <TagLabel>Confidence: {message.confidence_score || 'N/A'}/5</TagLabel>
-                          </Tag>
-                          <HStack>
-                            {isPlayingAudio === message.id ? (
+                        <>
+                          <Flex justify="space-between" mb={2}>
+                            <Tooltip label={confidenceTooltip} aria-label="Confidence score tooltip" placement="top">
+                              <Tag 
+                                size="md" 
+                                colorScheme={message.confidence_score ? (message.confidence_score >= 4 ? 'green' : message.confidence_score >= 3 ? 'yellow' : 'red') : 'gray'}
+                                px={3}
+                                py={2}
+                                borderRadius="md"
+                              >
+                                <TagLeftIcon boxSize="5" as={getConfidenceAttributes(message.confidence_score).icon} />
+                                <TagLabel fontWeight="bold">Confidence: {message.confidence_score || 'N/A'}/5</TagLabel>
+                              </Tag>
+                            </Tooltip>
+                            <HStack>
+                              {isPlayingAudio === message.id ? (
+                                <IconButton 
+                                  aria-label="Stop speaking" 
+                                  icon={<FiStopCircle />} 
+                                  size="xs" 
+                                  onClick={() => stopSpeaking(message.id)}
+                                  variant="ghost"
+                                />
+                              ) : (
+                                <IconButton 
+                                  aria-label="Speak answer" 
+                                  icon={<FiPlayCircle />} 
+                                  size="xs" 
+                                  onClick={() => speakText(message.text, message.id)}
+                                  isDisabled={isAnySpeaking}
+                                  variant="ghost"
+                                />
+                              )}
                               <IconButton 
-                                aria-label="Stop speaking" 
-                                icon={<FiStopCircle />} 
+                                aria-label="Copy to clipboard" 
+                                icon={<FiCopy />} 
                                 size="xs" 
-                                onClick={() => stopSpeaking(message.id)}
+                                onClick={() => onCopy(message.text)}
                                 variant="ghost"
                               />
-                            ) : (
-                              <IconButton 
-                                aria-label="Speak answer" 
-                                icon={<FiPlayCircle />} 
-                                size="xs" 
-                                onClick={() => speakText(message.text, message.id)}
-                                isDisabled={isAnySpeaking}
-                                variant="ghost"
-                              />
-                            )}
-                            <IconButton 
-                              aria-label="Copy to clipboard" 
-                              icon={<FiCopy />} 
-                              size="xs" 
-                              onClick={() => onCopy(message.text)}
-                              variant="ghost"
-                            />
-                          </HStack>
-                        </Flex>
+                            </HStack>
+                          </Flex>
+                          
+                          {message.self_heal_attempts && message.self_heal_attempts > 0 && (
+                            <Tooltip label={selfHealTooltip} aria-label="Self healing tooltip" placement="top">
+                              <Alert status="info" size="sm" mb={3} borderRadius="md" variant="left-accent">
+                                <AlertIcon />
+                                <Text fontSize="sm">This answer was improved through {message.self_heal_attempts} self-healing attempt{message.self_heal_attempts !== 1 ? 's' : ''}</Text>
+                              </Alert>
+                            </Tooltip>
+                          )}
+                        </>
                       )}
                       
                       {/* Render text content with Markdown support */}

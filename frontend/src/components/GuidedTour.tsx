@@ -67,38 +67,45 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ runTour, setRunTour }) => {
       disableBeacon: true
     },
     {
+      target: "#tour-chat-panel .ai-message:last-of-type",
+      content: "Notice the colored border around AI answers? That's the confidence meter! Green means high confidence (4-5), yellow is medium (3), and red indicates low confidence (1-2). When confidence is low, the system automatically tries to improve its answer.",
+      placement: "bottom",
+      title: "Step 7: Confidence Scoring & Self-Healing",
+      disableBeacon: true
+    },
+    {
       target: "#tour-precedent-panel",
       content: "This panel shows similar past cases, so you can see what happened before in situations like yours.",
       placement: "left",
-      title: "Step 7: See Similar Cases",
+      title: "Step 8: See Similar Cases",
       disableBeacon: true
     },
     {
       target: "#tour-strategy-note-generator",
       content: "Ready to write up your findings? Click here to instantly create a professional Word document with your strategy notes.",
       placement: "top",
-      title: "Step 8: Create a Strategy Note",
+      title: "Step 9: Create a Strategy Note",
       disableBeacon: true
     },
     {
       target: "#tour-red-team-modal-button",
       content: "Want to see how robust the AI is? Click here to run some \"stress tests\" and see how it handles tricky questions.",
       placement: "top",
-      title: "Step 9: Test the AI",
+      title: "Step 10: Test the AI",
       disableBeacon: true
     },
     {
       target: "#tour-info-sidebar-button",
       content: "Need more info? Click here anytime to see how Claims-AI works behind the scenes.",
       placement: "bottom",
-      title: "Step 10: Learn More",
+      title: "Step 11: Learn More",
       disableBeacon: true
     },
     {
       target: "#tour-restart-button",
       content: "You can restart this tour anytime by clicking here. Enjoy exploring Claims-AI!",
       placement: "bottom",
-      title: "Step 11: Tour Complete!",
+      title: "Step 12: Tour Complete!",
       disableBeacon: true
     }
   ];
