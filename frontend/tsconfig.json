@@ -18,7 +18,10 @@
     /* Misc */
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    
+    /* Testing */
+    "types": ["vitest/globals"]
   },
   "include": ["src"]
 }
