@@ -1,23 +1,22 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-  const isE2ETesting = env.VITE_E2E_TESTING === 'true'
-  const basePath = mode === 'development' ? '/' : '/claims-ai/'
-
+export default defineConfig(({ command, mode }) => {
+  const isPreview = command === 'preview';
+  
   console.log(`[vite.config.ts] RUNNING CONFIGURATION`)
   console.log(`[vite.config.ts] Mode: ${mode}`)
-  console.log(`[vite.config.ts] VITE_E2E_TESTING from env: ${env.VITE_E2E_TESTING}`)
-  console.log(`[vite.config.ts] isE2ETesting variable: ${isE2ETesting}`)
-  console.log(`[vite.config.ts] Determined base path (for router): ${basePath}`)
+  console.log(`[vite.config.ts] Command: ${command}`)
+  console.log(`[vite.config.ts] isPreview: ${isPreview}`)
+  console.log(`[vite.config.ts] Base path: ${isPreview ? '/claims-ai/' : '/'}`)
 
   return {
     plugins: [react()],
-    base: basePath,
+    base: isPreview ? '/claims-ai/' : '/',
     define: {
-      'import.meta.env.VITE_E2E_TESTING': JSON.stringify(env.VITE_E2E_TESTING),
+      'import.meta.env.APP_BASE': JSON.stringify(isPreview ? '/claims-ai/' : '/'),
+      'import.meta.env.VITE_E2E_TESTING': JSON.stringify(process.env.VITE_E2E_TESTING),
     },
     test: {
       environment: 'jsdom',

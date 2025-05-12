@@ -17,12 +17,10 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage.tsx';
 import { getBackendHealth } from './services/healthService.ts';
 import { QuestionIcon, InfoIcon } from '@chakra-ui/icons';
-import GuidedTour from './components/GuidedTour.tsx';
 import InfoSidebar from './components/InfoSidebar.tsx';
 
 export const App = () => {
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
-  const [runTour, setRunTour] = useState(false);
   const { isOpen: isInfoSidebarOpen, onOpen: onInfoSidebarOpen, onClose: onInfoSidebarClose } = useDisclosure();
 
   useEffect(() => {
@@ -37,23 +35,15 @@ export const App = () => {
     };
     checkHealth();
 
-    // Optional: Automatically start tour on first visit
-    // const tourCompleted = localStorage.getItem('claimsAiTourCompleted');
-    // if (!tourCompleted) {
-    //   setRunTour(true);
-    //   localStorage.setItem('claimsAiTourCompleted', 'true'); 
-    // }
-
+    // For demo: always clear the tour completed flag and optionally start the tour
+    localStorage.removeItem('claimsAiTourCompleted');
+    // Uncomment to always start tour on app load:
+    // setRunTour(true);
   }, []);
-
-  const startTour = () => {
-    setRunTour(true);
-  };
 
   return (
     <ChakraProvider theme={theme}>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
-        <GuidedTour runTour={runTour} setRunTour={setRunTour} />
+      <BrowserRouter basename={import.meta.env.APP_BASE}>
         <InfoSidebar isOpen={isInfoSidebarOpen} onClose={onInfoSidebarClose} />
         <Box textAlign="center" fontSize="xl">
           <Grid
@@ -69,11 +59,11 @@ export const App = () => {
             <GridItem pl='2' area={'header'} display="flex" justifyContent="space-between" alignItems="center">
               <Heading size="md">Claims-AI Test</Heading>
               <Box>
-                <Tooltip label="Need Help? Start the Guided Tour!" aria-label="Start guided tour">
+                <Tooltip label="Use the 'Start Tour' button on the main page to begin the Guided Tour." aria-label="Start guided tour">
                    <IconButton
                     aria-label="Start Guided Tour"
                     icon={<QuestionIcon />}
-                    onClick={startTour}
+                    isDisabled={true}
                     variant="ghost"
                     mr={2}
                     className="guided-tour-button"
