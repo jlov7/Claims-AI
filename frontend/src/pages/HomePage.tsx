@@ -14,7 +14,8 @@ import {
   Spacer,
   Grid,
   GridItem,
-  Heading
+  Heading,
+  Alert
 } from '@chakra-ui/react';
 import { getBackendHealth, type HealthStatus } from '../services/healthService.ts';
 import FileUploader from '../components/FileUploader.tsx';
@@ -36,17 +37,25 @@ const isE2E = import.meta.env.VITE_E2E_TESTING === 'true';
 console.log(`[HomePage Top Level] isE2E variable initialized to: ${isE2E}`);
 
 const HomePage: React.FC = () => {
+  // E2E test detection
+  const isE2E = import.meta.env.VITE_E2E_TESTING === 'true';
+  console.log(`[HomePage] E2E Testing mode enabled: ${isE2E}`);
+
+  // App state
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [loadingHealth, setLoadingHealth] = useState(true);
   const [uiReady, setUiReady] = useState(false);
-  const { isOpen: isRedTeamModalOpen, onOpen: onRedTeamModalOpen, onClose: onRedTeamModalClose } = useDisclosure();
-  const { isOpen: isInfoSidebarOpen, onOpen: onInfoSidebarOpen, onClose: onInfoSidebarClose } = useDisclosure();
-
-  const [runTour, setRunTour] = useState(false);
   const [documentIds, setDocumentIds] = useState<string[]>([]);
-  const [precedents, setPrecedents] = useState<Precedent[]>([]);
-  const [precedentsLoading, setPrecedentsLoading] = useState<boolean>(false);
+  const [runTour, setRunTour] = useState(false);
+  
+  // Precedents state
+  const [precedents, setPrecedents] = useState<Precedent[]>([]); // Initialize as empty array
+  const [precedentsLoading, setPrecedentsLoading] = useState(false);
   const [precedentsError, setPrecedentsError] = useState<string | null>(null);
+  
+  // Modal controls
+  const { isOpen: isInfoSidebarOpen, onOpen: onInfoSidebarOpen, onClose: onInfoSidebarClose } = useDisclosure();
+  const { isOpen: isRedTeamModalOpen, onOpen: onRedTeamModalOpen, onClose: onRedTeamModalClose } = useDisclosure();
 
   useEffect(() => {
     if (isE2E) {
@@ -84,22 +93,18 @@ const HomePage: React.FC = () => {
   // Separate effect for starting the tour, dependent on uiReady
   useEffect(() => {
     if (uiReady && !isE2E) {
-      console.log('[HomePage Tour Effect] UI is ready, checking if tour should start.');
-      const tourCompleted = safeLocalStorage?.getItem('claimsAiTourCompleted');
-      if (tourCompleted !== 'true') {
-        // Add a longer delay to allow all components to mount
-        const timer = setTimeout(() => {
-             console.log('[HomePage Tour Effect] Starting tour after delay.');
-             setRunTour(true);
-             // Optionally mark tour as started/completed immediately
-             // safeLocalStorage?.setItem('claimsAiTourCompleted', 'true'); 
-         }, 1500); // Increased delay
-        return () => clearTimeout(timer); // Cleanup timeout on unmount
-      } else {
-         console.log('[HomePage Tour Effect] Tour already completed.');
-      }
+      // For demo: always clear the tour completed flag and start the tour
+      safeLocalStorage?.removeItem('claimsAiTourCompleted');
+      const timer = setTimeout(() => {
+        setRunTour(true);
+      }, 1500); // Delay to allow all components to mount
+      return () => clearTimeout(timer);
     }
-  }, [uiReady, isE2E]); // Re-run this effect when uiReady changes
+  }, [uiReady, isE2E]);
+
+  useEffect(() => {
+    console.log('[HomePage] useEffect: runTour changed:', runTour);
+  }, [runTour]);
 
   const handleDocumentsUploaded = (newDocIds: string[]) => {
     setDocumentIds(newDocIds); 
@@ -107,7 +112,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleSearchPrecedents = async (contextText: string) => {
-     if (!contextText) return; // Don't search without context
+     if (!contextText || documentIds.length === 0) return; // Only search if we have uploaded documents
      console.log('[HomePage] Searching precedents based on context:', contextText.substring(0, 50) + '...');
      setPrecedentsLoading(true);
      setPrecedentsError(null);
@@ -125,87 +130,220 @@ const HomePage: React.FC = () => {
   };
 
   const startTour = () => {
+    console.log('[HomePage] Start Tour button clicked');
     setRunTour(true);
   };
 
-  console.log(`[HomePage] Rendering. uiReady: ${uiReady}`);
+  console.log(`[HomePage] Rendering. uiReady: ${uiReady}, runTour: ${runTour}`);
 
   return (
-    <Container id={uiReady ? 'app-ready' : undefined} maxW="container.xl" py={5}>
+    <Container 
+      id={loadingHealth ? undefined : 'app-ready'} 
+      maxW="container.xl" 
+      py={8}
+      px={{ base: 4, md: 8 }}
+      bgColor="white"
+      boxShadow="sm"
+      borderRadius="xl"
+    >
+      {/* Demo Mode Banner */}
+      <Alert 
+        status="info" 
+        variant="left-accent" 
+        borderRadius="lg" 
+        mb={6} 
+        fontSize="lg" 
+        fontWeight="bold"
+        boxShadow="sm"
+      >
+        🚀 Demo Mode: This is a guided, interactive demo of Claims-AI. Click "Start Tour" for a walkthrough!
+      </Alert>
+      
       {import.meta.env.VITE_E2E_TESTING !== 'true' && <GuidedTour runTour={runTour} setRunTour={setRunTour} />}
-      <VStack spacing={8} align="stretch">
-         <Flex alignItems="center" mb={4}>
-           <Spacer />
-           <Button 
-             leftIcon={<QuestionOutlineIcon />} 
-             onClick={startTour} 
-             variant="outline"
-             size="sm"
-             mr={2} 
-             id="tour-restart-button"
-           >
-             Start Tour
-           </Button>
-           <IconButton
-             id="tour-info-sidebar-button"
-             aria-label="Show Info"
-             icon={<InfoIcon />}
-             onClick={onInfoSidebarOpen}
-             variant="outline"
-             size="sm"
-           />
+      
+      <VStack spacing={10} align="stretch">
+         <Flex 
+           alignItems="center" 
+           justifyContent="space-between" 
+           mb={6} 
+           pb={4} 
+           borderBottom="1px" 
+           borderColor="gray.100"
+         >
+           <Heading size="lg" color="brand.600">Claims-AI Demo</Heading>
+           <Flex>
+             <Button 
+               leftIcon={<QuestionOutlineIcon />} 
+               onClick={startTour} 
+               variant="outline"
+               size="md"
+               mr={4} 
+               id="tour-restart-button"
+               className="tour-highlightable"
+               colorScheme="brand"
+             >
+               Start Tour
+             </Button>
+             <IconButton
+               id="tour-info-sidebar-button"
+               aria-label="Show Info"
+               icon={<InfoIcon />}
+               onClick={onInfoSidebarOpen}
+               variant="outline"
+               size="md"
+               className="tour-highlightable"
+               colorScheme="brand"
+             />
+           </Flex>
          </Flex>
          
          {/* Section 1: Setup & Upload */} 
-         <Heading size="lg" mt={6} mb={2}>Step 1: Upload & Prepare</Heading>
-         <Box id="tour-health-status-display">
-           <HealthStatusDisplay health={health} loadingHealth={loadingHealth} />
-         </Box>
-         <Box id="tour-file-uploader" mt={4}>
-           <FileUploader />
+         <Box
+           p={6}
+           borderRadius="xl"
+           borderWidth="1px"
+           borderColor="gray.200"
+           bg="white"
+           boxShadow="sm"
+         >
+           <Heading size="lg" mb={4} color="brand.600">Step 1: Upload & Prepare</Heading>
+           <Text fontSize="md" color="gray.600" mb={6}>
+             Upload your claim documents here (PDF, TIFF, or DOCX). The app will OCR them and make their contents available for summarisation and AI-powered queries.
+           </Text>
+           <Box 
+             id="tour-health-status-display" 
+             className="tour-highlightable" 
+             p={5} 
+             mb={5}
+             bg="gray.50"
+             borderRadius="lg"
+           >
+             <HealthStatusDisplay health={health} loadingHealth={loadingHealth} />
+           </Box>
+           <Box 
+             id="tour-file-uploader" 
+             className="tour-highlightable" 
+             p={6} 
+             borderRadius="lg" 
+             boxShadow="md"
+             bg="gray.50"
+           >
+             <FileUploader />
+           </Box>
          </Box>
          
          {/* Section 2: Analyse & Understand */} 
-         <Heading size="lg" mt={8} mb={2}>Step 2: Analyse & Understand</Heading>
-         <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={6}>
-           {/* Summarise Panel */}
-           <GridItem rowSpan={1} colSpan={{ base: 2, lg: 1 }} >
-             <Box height="500px" overflowY="auto" borderWidth="1px" borderRadius="lg" p={4} className="summarise-panel-container">
-               <SummarisePanel />
-             </Box>
-           </GridItem>
-
-           {/* Chat Panel */}
-           <GridItem rowSpan={1} colSpan={{ base: 2, lg: 1 }} >
-             <Box height="500px" overflowY="auto" borderWidth="1px" borderRadius="lg" p={4} className="chat-panel-container">
-               <ChatPanel onNewAiAnswer={handleSearchPrecedents} />
-             </Box>
-           </GridItem>
-         </Grid>
-         
-         {/* Precedent Panel (Still part of Analysis) */} 
-         <Heading size="md" mt={6} mb={2}>Find Similar Precedents</Heading>
-         <Box id="tour-precedent-panel">
-           <PrecedentPanel 
-             precedents={precedents} 
-             isLoading={precedentsLoading} 
-             error={precedentsError}
-           />
-         </Box>
-
-         {/* Section 3: Generate Outputs & Test */} 
-         <Heading size="lg" mt={8} mb={2}>Step 3: Generate Outputs & Test</Heading>
-         <Box id="tour-strategy-note-generator">
-           <StrategyNoteGenerator documentIds={documentIds} />
-         </Box>
-         <Divider my={4} />
-         <Button 
-           id="tour-red-team-modal-button"
-           onClick={onRedTeamModalOpen} 
-           colorScheme="orange"
+         <Box
+           p={6}
+           borderRadius="xl"
+           borderWidth="1px"
+           borderColor="gray.200"
+           bg="white"
+           boxShadow="sm"
          >
-           Run Red Team Evaluation
-         </Button>
+           <Heading size="lg" mb={4} color="brand.600">Step 2: Analyse & Understand</Heading>
+           <Text fontSize="md" color="gray.600" mb={6}>
+             Use the summarisation panel to get quick document summaries, or chat with the AI to ask specific questions based on your uploaded documents.
+           </Text>
+           <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={8}>
+             {/* Summarise Panel */}
+             <GridItem rowSpan={1} colSpan={{ base: 1, lg: 1 }} >
+               <Box 
+                 id="tour-summarise-panel" 
+                 className="summarise-panel-container tour-highlightable" 
+                 height="500px" 
+                 overflowY="auto" 
+                 borderWidth="1px" 
+                 borderRadius="lg" 
+                 p={6}
+                 bg="gray.50"
+                 boxShadow="sm"
+               >
+                 <SummarisePanel />
+               </Box>
+             </GridItem>
+             {/* Chat Panel */}
+             <GridItem rowSpan={1} colSpan={{ base: 1, lg: 1 }} >
+               <Box 
+                 id="tour-chat-panel"
+                 height="500px" 
+                 overflowY="auto" 
+                 borderWidth="1px" 
+                 borderRadius="lg" 
+                 p={6} 
+                 className="chat-panel-container tour-highlightable"
+                 bg="gray.50"
+                 boxShadow="sm"
+               >
+                 <ChatPanel onNewAiAnswer={handleSearchPrecedents} />
+               </Box>
+             </GridItem>
+           </Grid>
+           
+           {/* Precedent Panel (Still part of Analysis) */} 
+           <Box mt={8}>
+             <Heading size="md" mb={4} color="brand.600">Find Similar Precedents</Heading>
+             <Text fontSize="md" color="gray.600" mb={4}>
+               Explore historical claim cases that are similar to your context, helping you benchmark past outcomes and inform your strategy decisions.
+             </Text>
+             <Box 
+               id="tour-precedent-panel" 
+               className="tour-highlightable" 
+               p={6}
+               bg="gray.50"
+               borderRadius="lg"
+               borderWidth="1px"
+               boxShadow="sm"
+             >
+               <PrecedentPanel 
+                 precedents={precedents} 
+                 isLoading={precedentsLoading} 
+                 error={precedentsError}
+               />
+             </Box>
+           </Box>
+         </Box>
+         
+         {/* Section 3: Generate Outputs & Test */} 
+         <Box
+           p={6}
+           borderRadius="xl"
+           borderWidth="1px"
+           borderColor="gray.200"
+           bg="white"
+           boxShadow="sm"
+         >
+           <Heading size="lg" mb={4} color="brand.600">Step 3: Generate Outputs & Test</Heading>
+           <Text fontSize="md" color="gray.600" mb={6}>
+             Create a professional strategy note in Word format based on your AI insights, then run the Red Team evaluation to stress-test the AI's responses and validate robustness.
+           </Text>
+           <Box 
+             id="tour-strategy-note-generator" 
+             className="tour-highlightable" 
+             p={6}
+             bg="gray.50"
+             borderRadius="lg"
+             borderWidth="1px"
+             boxShadow="sm"
+             mb={6}
+           >
+             <StrategyNoteGenerator documentIds={documentIds} />
+           </Box>
+           <Divider my={6} />
+           <Button 
+             id="tour-red-team-modal-button"
+             className="tour-highlightable"
+             onClick={onRedTeamModalOpen} 
+             colorScheme="orange"
+             size="lg"
+             py={7}
+             width="100%"
+             fontWeight="bold"
+             boxShadow="md"
+           >
+             Run Red Team Evaluation
+           </Button>
+         </Box>
       </VStack>
       <InfoSidebar isOpen={isInfoSidebarOpen} onClose={onInfoSidebarClose} />
       <RedTeamModal isOpen={isRedTeamModalOpen} onClose={onRedTeamModalClose} />
