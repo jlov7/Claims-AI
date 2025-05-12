@@ -323,17 +323,64 @@ The workflow ensures code quality and functionality before merging changes.
 
 ## 9. Future Roadmap & Enterprise Migration
 
-This MVP provides a strong foundation. Future enhancements and enterprise migration paths could include:
+This MVP provides a strong foundation. Future enhancements and enterprise migration paths could include mapping the POC components to robust, scalable cloud services (Azure, AWS, GCP):
 
-- **Advanced RAG:** Explore more sophisticated retrieval (e.g., query decomposition, HyDE), re-ranking, and context management strategies.
-- **LLM Evaluation & Fine-tuning:** Implement rigorous LLM evaluation frameworks (e.g., RAGAs, DeepEval) and potentially fine-tune models for specific claim types or legal domains.
-- **Scalability:** Transition services to cloud-native managed offerings (e.g., Azure AKS/ACR, AWS EKS/ECR, GCP GKE/Artifact Registry, managed PostgreSQL/Vector DBs/Object Storage).
-- **User Authentication & Authorization:** Implement robust authentication (e.g., OAuth2/OIDC) and role-based access control (RBAC).
-- **Production Monitoring & Logging:** Integrate comprehensive monitoring (e.g., Prometheus/Grafana, Datadog) and structured logging.
-- **Alternative Embedding/LLM Models:** Support for different embedding models (e.g., Sentence Transformers) and LLMs (e.g., Claude, Gemini, GPT-4) via standardized interfaces.
-- **UI Enhancements:** More sophisticated document viewers, annotation tools, and data visualization.
+1.  **Production Infrastructure & Orchestration:**
+    *   **POC:** Docker Compose
+    *   **Enterprise:** Kubernetes (Azure AKS, AWS EKS, GCP GKE) with Helm/Terraform for deployment; managed container registries (ACR, ECR, Artifact Registry).
+2.  **Secrets & Configuration:**
+    *   **POC:** `.env` file
+    *   **Enterprise:** Cloud-native secret management (Azure Key Vault, AWS Secrets Manager, GCP Secret Manager).
+3.  **Observability:**
+    *   **POC:** Basic logging to console/Docker logs.
+    *   **Enterprise:** Comprehensive monitoring (Prometheus/Grafana on K8s or Azure Monitor, AWS CloudWatch, Google Cloud Monitoring) and centralized logging (ELK stack, Azure Log Analytics, CloudWatch Logs, Cloud Logging).
+4.  **CI/CD Pipelines:**
+    *   **POC:** GitHub Actions (lint, test, build).
+    *   **Enterprise:** Integrate GitHub Actions with cloud deployment tools (Azure DevOps Pipelines, AWS CodePipeline/CodeBuild, Google Cloud Build/Deploy) for automated infrastructure provisioning and application deployment.
+5.  **Data Storage & Vector Search:**
+    *   **RDBMS (Metadata):** PostgreSQL (Docker) -> Managed PostgreSQL (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL).
+    *   **Object Storage (Files, Audio):** Minio (Docker) -> Cloud Object Storage (Azure Blob Storage, AWS S3, Google Cloud Storage).
+    *   **Vector Database:** ChromaDB (Docker) -> Managed Vector Stores (Azure AI Search vector store, AWS OpenSearch Serverless with vector plugin, GCP Vertex AI Matching Engine).
+6.  **LLMs & Embeddings:**
+    *   **LLM:** LM Studio (Local Phi-4) -> Managed LLMs (Azure OpenAI GPT-4, AWS Bedrock Claude/Titan, GCP Vertex AI Gemini). Consider fine-tuning for specific domains.
+    *   **Embeddings:** LM Studio (Local Nomic) -> Cloud Embedding APIs (Azure OpenAI Embeddings, AWS Bedrock Embeddings, Vertex AI Embeddings) or self-hosted embedding services.
+7.  **Text-to-Speech:**
+    *   **TTS:** Coqui TTS (Docker) -> Cloud TTS Services (Azure Speech Service, AWS Polly, Google Cloud Text-to-Speech) integrated via serverless functions or microservices for scalability.
+8.  **API Gateway & Security:**
+    *   **Gateway:** FastAPI (Direct) -> Cloud API Gateways (Azure API Management, AWS API Gateway, GCP API Gateway) for traffic management, rate limiting, security.
+    *   **Auth:** None -> Robust Authentication/Authorization (OAuth2/OIDC via Azure AD, AWS Cognito, Google Identity Platform), Role-Based Access Control (RBAC).
+9.  **Scalability & Resilience:**
+    *   **Compute:** Docker containers -> Horizontal autoscaling (Kubernetes HPA, Azure Container Apps, AWS Fargate, GCP Cloud Run).
+    *   **Ingestion:** Script-based -> Asynchronous batch ingestion pipelines (Azure Functions, AWS Lambda, Cloud Functions) triggered by storage events, using message queues (Azure Service Bus, AWS SQS, GCP Pub/Sub) for decoupling.
+10. **Advanced Features & Governance:**
+    *   **LLM Evaluation:** Ad-hoc -> Rigorous frameworks (RAGAs, DeepEval), MLOps integration.
+    *   **Explainability:** Limited -> SHAP, LIME integration.
+    *   **BI/Reporting:** None -> Power BI, QuickSight, Looker dashboards.
+    *   **Compliance:** Basic -> Audit trails, GDPR/CCPA features, fine-grained access control.
 
-This project serves as a stepping stone towards building a production-ready, AI-augmented claims analysis platform.
+By systematically mapping each POC component to its enterprise-grade cloud equivalent, Claims-AI can transition from a local prototype into a scalable, secure, and compliant application ready for client deployment.
+
+**Enterprise Migration Mapping Summary:**
+
+| Category             | POC Component           | Enterprise Azure                     | Enterprise AWS                          | Enterprise GCP                          |
+| :------------------- | :---------------------- | :----------------------------------- | :-------------------------------------- | :-------------------------------------- |
+| Orchestration        | Docker Compose          | Azure Kubernetes Service (AKS)       | Elastic Kubernetes Service (EKS)        | Google Kubernetes Engine (GKE)          |
+| Container Registry   | Docker Hub (Implicit)   | Azure Container Registry (ACR)     | Elastic Container Registry (ECR)        | Google Artifact Registry              |
+| Secrets & Config     | `.env` File             | Azure Key Vault                      | AWS Secrets Manager                     | GCP Secret Manager                      |
+| Observability        | Console/Docker Logs     | Azure Monitor / Log Analytics        | AWS CloudWatch                          | Google Cloud Monitoring/Logging         |
+| CI/CD                | GitHub Actions          | GitHub Actions + Azure DevOps        | GitHub Actions + AWS CodePipeline       | GitHub Actions + Google Cloud Build     |
+| RDBMS (Metadata)     | PostgreSQL (Docker)     | Azure Database for PostgreSQL        | AWS RDS (PostgreSQL)                    | Google Cloud SQL (PostgreSQL)           |
+| Object Storage       | Minio (Docker)          | Azure Blob Storage                   | AWS S3                                  | Google Cloud Storage                  |
+| Vector Database      | ChromaDB (Docker)       | Azure AI Search (Vector Store)       | AWS OpenSearch Serverless (Vector)      | GCP Vertex AI Matching Engine         |
+| LLM                  | LM Studio (Local Phi-4) | Azure OpenAI (GPT-4)                 | AWS Bedrock (Claude/Titan)              | GCP Vertex AI (Gemini)                  |
+| Embeddings           | LM Studio (Local Nomic) | Azure OpenAI Embeddings              | AWS Bedrock Embeddings                  | GCP Vertex AI Embeddings              |
+| Text-to-Speech       | Coqui TTS (Docker)      | Azure Speech Service                 | AWS Polly                               | Google Cloud Text-to-Speech           |
+| API Gateway          | FastAPI (Direct)        | Azure API Management                 | AWS API Gateway                         | GCP API Gateway                       |
+| Authentication       | None                    | Azure AD (Entra ID)                  | AWS Cognito                             | Google Identity Platform              |
+| Scalable Compute     | Docker Containers       | AKS Nodes / Azure Container Apps     | AWS Fargate / EKS Nodes                 | GKE Nodes / Google Cloud Run          |
+| Batch Ingestion      | Python Scripts (Sync)   | Azure Functions / Logic Apps         | AWS Lambda / Step Functions             | Google Cloud Functions / Workflows    |
+| Message Queue        | None                    | Azure Service Bus                    | AWS SQS                                 | GCP Pub/Sub                           |
+| BI/Reporting         | None                    | Power BI                             | AWS QuickSight                          | Google Looker Studio                  |
 
 ---
 
