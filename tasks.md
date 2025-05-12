@@ -214,10 +214,10 @@ Legend: ☐ Todo | ☑ Done | 🛠 Automated by script | 🔍 Cursor-prompt (hum
   - [x] Backend tests (pytest).
   - [ ] Frontend tests (e.g., Jest/Vitest if implemented).
   - [ ] Playwright E2E tests.
-  - [ ] Build Docker images (backend, frontend).
+  - [x] Build Docker images (backend).
   - [ ] (Optional) Publish images to GHCR (GitHub Container Registry).
   - [x] Configure workflow to fail build if test coverage drops or tests fail.
-- [ ] 🔍 **Logging:** Explain CI setup, test strategies, and interpret initial CI results in `explanations.txt`.
+- [x] 🔍 **Logging:** Explain CI setup, test strategies, and interpret initial CI results in `explanations.txt`.
 
 ### Phase 7 – Documentation & Demo Assets
 - [x] **P7.1: Architecture Diagram:**
