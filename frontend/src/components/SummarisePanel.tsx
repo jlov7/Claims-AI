@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import {
+  Card,
+  CardHeader,
+  CardBody,
   Box,
   Heading,
   FormControl,
@@ -12,6 +15,7 @@ import {
   Text,
   Divider,
   Tooltip,
+  SkeletonText,
 } from '@chakra-ui/react';
 import { summarise, SummariseRequest } from '../services/summariseService.ts';
 import ReactMarkdown from 'react-markdown';
@@ -53,51 +57,74 @@ const SummarisePanel: React.FC = () => {
   };
 
   return (
-    <Box p={4} shadow="md" borderWidth="1px" borderRadius="md" w="100%">
-      <Heading size="md" mb={1}>Summarise Document</Heading>
-      <Text fontSize="sm" color="gray.600" mb={3}>
-        Get a quick AI-generated summary by document ID or pasted text.
-      </Text>
-      <FormControl isInvalid={!!error} mb={3}>
-        <FormLabel htmlFor="tour-summarise-id">Document ID</FormLabel>
-        <Tooltip label="Enter the ID of an already uploaded and processed document (e.g., the .json filename)." placement="top-start" hasArrow>
-          <Input
-            id="tour-summarise-id"
-            placeholder="e.g., my_doc.pdf.json"
-            value={documentId}
-            onChange={(e) => setDocumentId(e.target.value)}
-            mb={2}
-          />
+    <Card shadow="md" borderWidth="2px" borderRadius="lg" w="100%" className="tour-highlightable" bg="white">
+      <CardHeader>
+        <Heading size="lg">Summarise Document</Heading>
+      </CardHeader>
+      <CardBody p={6}>
+        <Text fontSize="md" color="gray.600" mb={4}>
+          Get a quick AI-generated summary by document ID or pasted text.
+        </Text>
+        <FormControl isInvalid={!!error} mb={4}>
+          <FormLabel htmlFor="tour-summarise-id" fontSize="md">Document ID</FormLabel>
+          <Tooltip label="Enter the ID of an already uploaded and processed document (e.g., the .json filename)." placement="top-start" hasArrow>
+            <Input
+              id="tour-summarise-id"
+              placeholder="e.g., my_doc.pdf.json"
+              value={documentId}
+              onChange={(e) => setDocumentId(e.target.value)}
+              mb={3}
+              size="lg"
+              borderRadius="md"
+              borderWidth="2px"
+              borderColor="blue.300"
+              bg="gray.50"
+              fontSize="lg"
+              p={4}
+              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 2px #3182ce' }}
+            />
+          </Tooltip>
+          <FormLabel htmlFor="tour-summarise-content" fontSize="md">Or paste text</FormLabel>
+          <Tooltip label="Alternatively, paste the raw text content you want to summarise directly here." placement="top-start" hasArrow>
+            <Textarea
+              id="tour-summarise-content"
+              placeholder="Or paste text to summarise"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={4}
+              size="lg"
+              borderRadius="md"
+              borderWidth="2px"
+              borderColor="blue.300"
+              bg="gray.50"
+              fontSize="lg"
+              p={4}
+              _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 2px #3182ce' }}
+            />
+          </Tooltip>
+          {error && <Text color="red.500" mt={2} fontSize="md">{error}</Text>}
+        </FormControl>
+        <Tooltip label="Click to generate a summary using the AI based on the provided Document ID or text." placement="bottom" hasArrow>
+          <Button id="tour-summarise-button" onClick={handleSummarise} colorScheme="blue" isLoading={loading} mb={6} size="lg" px={8} py={6} fontSize="xl" borderRadius="md">
+            Get Summary
+          </Button>
         </Tooltip>
-        <FormLabel htmlFor="tour-summarise-content">Or paste text</FormLabel>
-        <Tooltip label="Alternatively, paste the raw text content you want to summarise directly here." placement="top-start" hasArrow>
-          <Textarea
-            id="tour-summarise-content"
-            placeholder="Or paste text to summarise"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={4}
-          />
-        </Tooltip>
-        {error && <Text color="red.500" mt={1}>{error}</Text>}
-      </FormControl>
-      <Tooltip label="Click to generate a summary using the AI based on the provided Document ID or text." placement="bottom" hasArrow>
-        <Button id="tour-summarise-button" onClick={handleSummarise} colorScheme="blue" isLoading={loading} mb={4}>
-          Get Summary
-        </Button>
-      </Tooltip>
-      {summary && (
-        <Box 
-          id="tour-summarise-results" 
-          pt={2} 
-          borderTop="1px solid" 
-          borderColor="gray.200"
-          sx={{ whiteSpace: 'pre-wrap' }}
-        >
-          <ReactMarkdown>{summary}</ReactMarkdown>
-        </Box>
-      )}
-    </Box>
+        {loading ? (
+          <SkeletonText data-testid="summary-skeleton" mt={4} noOfLines={4} spacing="4" skeletonHeight="2" />
+        ) : summary && (
+          <Box 
+            id="tour-summarise-results" 
+            pt={4} 
+            borderTop="2px solid" 
+            borderColor="blue.200"
+            sx={{ whiteSpace: 'pre-wrap' }}
+            fontSize="lg"
+          >
+            <ReactMarkdown>{summary}</ReactMarkdown>
+          </Box>
+        )}
+      </CardBody>
+    </Card>
   );
 };
 

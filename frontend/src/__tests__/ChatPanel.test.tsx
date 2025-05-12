@@ -12,8 +12,10 @@ describe('ChatPanel', () => {
       </ChakraProvider>
     );
     const textarea = screen.getByPlaceholderText(/Ask a question about your documents.../i);
+    // @ts-ignore - jest-dom types
     expect(textarea).toBeInTheDocument();
     const button = screen.getByRole('button', { name: /Send/i });
+    // @ts-ignore - jest-dom types
     expect(button).toBeInTheDocument();
   });
 }); 

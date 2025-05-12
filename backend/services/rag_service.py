@@ -148,42 +148,75 @@ class RAGService:
 
             sources: List[SourceDocument] = []
             context_str = ""
-            if results and results.get("documents") and results["documents"][0]:
-                for i, doc_content in enumerate(results["documents"][0]):
-                    meta = (
-                        results["metadatas"][0][i]
-                        if results.get("metadatas")
-                        and results["metadatas"][0]
-                        and i < len(results["metadatas"][0])
-                        else {}
-                    )
-                    dist = (
-                        results["distances"][0][i]
-                        if results.get("distances")
-                        and results["distances"][0]
-                        and i < len(results["distances"][0])
-                        else None
-                    )
-
-                    # Ensure this matches the SourceDocument model fields
-                    source_doc = SourceDocument(
-                        document_id=meta.get("document_id", "unknown_id"),
-                        chunk_id=meta.get("chunk_id", "unknown_chunk"),
-                        chunk_content=doc_content,  # Corrected field name
-                        file_name=meta.get("filename", "unknown_file"),
-                        score=round(dist, 2) if dist is not None else 0.0,
-                    )
-                    sources.append(source_doc)
-                    context_str += f"Source {i+1} (Document: {source_doc.file_name}, Chunk: {source_doc.chunk_id}):\n{doc_content}\n\n"
-                logger.info(f"Retrieved {len(sources)} sources from ChromaDB.")
-            else:
+            if (
+                not results
+                or not results.get("documents")
+                or not results["documents"][0]
+                or len(results["documents"][0]) == 0
+            ):
                 logger.info("No relevant documents found in ChromaDB for the query.")
+
+                # Always return the SAME tuple shape the frontend expects:
+                #   text:str, sources:list[dict], confidence:int, attempts:int
+                empty_source = {
+                    "file_name": "placeholder_document.txt",
+                    "page_content": "Unfortunately, I couldn't find specific text passages that answer your question directly. Would you like to try rephrasing your question or exploring a different topic?",
+                    "chunk_id": "placeholder_chunk",
+                    "score": 0.5,
+                }
+
                 return (
-                    "I could not find any relevant documents to answer your question.",
-                    [],
+                    "I don't have enough specific information from your documents to answer this question confidently. Try rephrasing or asking about a topic covered in your documents.",
+                    [empty_source],  # still a list, but with placeholder
+                    2,  # low confidence
+                    0,  # no self‑healing attempts
+                )
+
+            for i, doc_content in enumerate(results["documents"][0]):
+                meta = (
+                    results["metadatas"][0][i]
+                    if results.get("metadatas")
+                    and results["metadatas"][0]
+                    and i < len(results["metadatas"][0])
+                    else {}
+                )
+                dist = (
+                    results["distances"][0][i]
+                    if results.get("distances")
+                    and results["distances"][0]
+                    and i < len(results["distances"][0])
+                    else None
+                )
+
+                # Ensure this matches the SourceDocument model fields
+                source_doc = SourceDocument(
+                    document_id=meta.get("document_id", "unknown_id"),
+                    chunk_id=meta.get("chunk_id", "unknown_chunk"),
+                    chunk_content=doc_content,  # Corrected field name
+                    file_name=meta.get("filename", "unknown_file"),
+                    score=round(dist, 2) if dist is not None else 0.0,
+                )
+                sources.append(source_doc)
+                context_str += f"Source {i+1} (Document: {source_doc.file_name}, Chunk: {source_doc.chunk_id}):\n{doc_content}\n\n"
+            logger.info(f"Retrieved {len(sources)} sources from ChromaDB.")
+
+            if not sources:
+                logger.info(
+                    "No relevant documents found in ChromaDB for the query after processing."
+                )
+                empty_source = {
+                    "file_name": "placeholder_document.txt",
+                    "page_content": "Unfortunately, I couldn't find specific text passages that answer your question directly. Would you like to try rephrasing your question or exploring a different topic?",
+                    "chunk_id": "placeholder_chunk",
+                    "score": 0.5,
+                }
+
+                return (
+                    "I don't have enough specific information from your documents to answer this question confidently. Try rephrasing or asking about a topic covered in your documents.",
+                    [empty_source],
                     2,
                     0,
-                )  # Low confidence if no docs
+                )
 
             # 3. Construct prompt with context
             prompt_template = ChatPromptTemplate.from_messages(

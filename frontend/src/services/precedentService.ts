@@ -1,5 +1,5 @@
-import apiClient from './apiClient.js';
-import { PrecedentSearchRequest, PrecedentsApiResponse } from '../models/precedent.js';
+import apiClient from './apiClient.ts';
+import { PrecedentSearchRequest, PrecedentsApiResponse } from '../models/precedent.ts';
 
 export const findNearestPrecedents = async (
   request: PrecedentSearchRequest

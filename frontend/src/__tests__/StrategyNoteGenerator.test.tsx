@@ -13,9 +13,10 @@ describe('StrategyNoteGenerator', () => {
         <StrategyNoteGenerator documentIds={mockDocumentIds} />
       </ChakraProvider>
     );
-    expect(screen.getByText(/^Strategy Note$/i)).toBeInTheDocument();
+    // expect(screen.getByText(/^Strategy Note$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Optional Criteria:/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Generate & Download DOCX/i })).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/e\.g\., StrategyNote_Claim123\.docx/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Generate Strategy Note \(DOCX\)/i)).toBeInTheDocument();
   });
 }); 

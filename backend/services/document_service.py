@@ -142,6 +142,29 @@ class DocumentService:
                 batch_overall_status = "Completed with errors"
             else:
                 logger.info("OCR script completed successfully.")
+                # Ingest each processed document into the RAG vector store
+                try:
+                    from backend.services.document_loader import (
+                        get_document_loader_service,
+                    )
+                    from backend.services.rag_service import get_rag_service
+
+                    loader = get_document_loader_service()
+                    rag_service = get_rag_service()
+                    for saved_path in saved_file_paths:
+                        doc_id = saved_path.name  # filename used as document ID
+                        content = loader.load_document_content_by_id(doc_id)
+                        if content:
+                            rag_service.collection.add(
+                                documents=[content],
+                                metadatas=[{"document_id": doc_id}],
+                                ids=[doc_id],
+                            )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to ingest documents into RAG store: {e}", exc_info=True
+                    )
+
                 for i, item in enumerate(results):
                     is_part_of_batch = any(
                         saved_file.name == item.filename

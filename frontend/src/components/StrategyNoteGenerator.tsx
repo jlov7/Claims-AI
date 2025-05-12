@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  Card,
+  CardHeader,
+  CardBody,
   Box,
   Button,
   FormControl,
@@ -82,55 +85,62 @@ const StrategyNoteGenerator: React.FC<StrategyNoteGeneratorProps> = ({ documentI
   };
 
   return (
-    <Box p={4} shadow="md" borderWidth="1px" borderRadius="md">
-      <Heading size="md" mb={1}>Generate Strategy Note (DOCX)</Heading>
-      <Text fontSize="sm" color="gray.600" mb={3}>
-        Draft a claim strategy note in Word format using AI context.
-      </Text>
-       <Tooltip 
-         label="Click to generate a DOCX strategy note using the AI, based on the context of uploaded documents."
-         placement="top"
-         hasArrow
-       >
-        <Button 
-          leftIcon={<FiDownload />} 
-          colorScheme="teal"
-          onClick={handleGenerateAndDownload} 
-          isLoading={isLoading}
-          loadingText="Generating & Downloading..."
-          className="strategy-note-button"
-          mt={2}
+    <Card shadow="md" borderWidth="2px" borderRadius="lg" id="tour-strategy-note-generator" className="tour-highlightable" bg="white">
+      <CardHeader>
+        <Heading size="lg">Generate Strategy Note (DOCX)</Heading>
+        <Text fontSize="md" color="gray.600" mt={2}>Draft a claim strategy note in Word format using AI context.</Text>
+      </CardHeader>
+      <CardBody p={6}>
+        <Tooltip 
+          label="Click to generate a DOCX strategy note using the AI, based on the context of uploaded documents."
+          placement="top"
+          hasArrow
         >
-          Generate & Download DOCX
-        </Button>
-      </Tooltip>
+          <Button 
+            leftIcon={<FiDownload />} 
+            colorScheme="teal"
+            onClick={handleGenerateAndDownload} 
+            isLoading={isLoading}
+            loadingText="Generating & Downloading..."
+            className="strategy-note-button"
+            mt={2}
+            size="lg"
+            px={8}
+            py={6}
+            fontSize="xl"
+            borderRadius="md"
+          >
+            Generate & Download DOCX
+          </Button>
+        </Tooltip>
 
-      <FormControl>
-        <FormLabel htmlFor="strategy-criteria" fontSize="sm">Optional Criteria:</FormLabel>
-        <Textarea 
-          id="strategy-criteria" 
-          value={criteria}
-          onChange={(e) => setCriteria(e.target.value)}
-          placeholder="Enter specific points or sections to include..."
-          size="sm"
-          rows={2}
-        />
-      </FormControl>
-
-      <Collapse in={isPreviewOpen} animateOpacity>
-        <Box mt={4} p={3} borderWidth="1px" borderRadius="md" bg={useColorModeValue('gray.50', 'gray.700')}>
-          <Heading size="sm" mb={2}>Generated Note Context</Heading>
+        <FormControl>
+          <FormLabel htmlFor="strategy-criteria" fontSize="sm">Optional Criteria:</FormLabel>
           <Textarea 
-            value={draftContent || ''} 
-            isReadOnly 
-            height="150px"
-            fontFamily="monospace"
-            fontSize="xs"
-            borderColor="gray.300"
+            id="strategy-criteria" 
+            value={criteria}
+            onChange={(e) => setCriteria(e.target.value)}
+            placeholder="Enter specific points or sections to include..."
+            size="sm"
+            rows={2}
           />
-        </Box>
-      </Collapse>
-    </Box>
+        </FormControl>
+
+        <Collapse in={isPreviewOpen} animateOpacity>
+          <Box mt={4} p={3} borderWidth="1px" borderRadius="md" bg={useColorModeValue('gray.50', 'gray.700')}>
+            <Heading size="sm" mb={2}>Generated Note Context</Heading>
+            <Textarea 
+              value={draftContent || ''} 
+              isReadOnly 
+              height="150px"
+              fontFamily="monospace"
+              fontSize="xs"
+              borderColor="gray.300"
+            />
+          </Box>
+        </Collapse>
+      </CardBody>
+    </Card>
   );
 };
 

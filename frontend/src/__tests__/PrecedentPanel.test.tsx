@@ -15,8 +15,9 @@ describe('PrecedentPanel', () => {
     );
     // Check for the updated heading
     expect(screen.getByText(/Nearest Precedents/i)).toBeInTheDocument();
-    // Check for loading indicator
-    expect(screen.getByText(/Finding similar precedents.../i)).toBeInTheDocument();
+    // Check for skeleton loading placeholders
+    const skeletons = screen.getAllByTestId('precedent-skeleton');
+    expect(skeletons).toHaveLength(4);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument(); // No error alert
   });
 
@@ -58,7 +59,7 @@ describe('PrecedentPanel', () => {
       </ChakraProvider>
     );
     expect(screen.getByText(/Nearest Precedents/i)).toBeInTheDocument();
-    expect(screen.getByText(/No relevant precedents found/i)).toBeInTheDocument();
+    expect(screen.getByText(/No precedents available to display/i)).toBeInTheDocument();
   });
 
 }); 

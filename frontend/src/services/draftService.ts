@@ -1,5 +1,5 @@
-import apiClient from './apiClient.js';
-import { DraftStrategyNoteRequest } from '../models/draft.js';
+import apiClient from './apiClient.ts';
+import { DraftStrategyNoteRequest } from '../models/draft.ts';
 
 export const draftStrategyNote = async (
   request: DraftStrategyNoteRequest

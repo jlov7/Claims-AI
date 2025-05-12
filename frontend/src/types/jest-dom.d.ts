@@ -1,9 +1,8 @@
-import '@testing-library/jest-dom'; 
+import '@testing-library/jest-dom';
 
-// Explicitly declare types for the jest-dom extensions
 declare global {
   namespace Vi {
-    interface Assertion {
+    interface JestAssertion {
       toBeInTheDocument(): void;
       toBeVisible(): void;
       toHaveTextContent(text: string): void;
@@ -17,8 +16,5 @@ declare global {
   }
 }
 
-// Stub scrollIntoView since jsdom does not implement it
-window.HTMLElement.prototype.scrollIntoView = function() {}; 
-
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck 
+// This file is a module and needs to have at least one export
+export {}; 

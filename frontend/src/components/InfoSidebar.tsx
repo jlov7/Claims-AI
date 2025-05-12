@@ -7,6 +7,11 @@ import {
   DrawerContent,
   DrawerCloseButton,
   VStack,
+  SimpleGrid,
+  Card,
+  CardHeader,
+  CardBody,
+  Flex,
   Text,
   Code,
   Heading,
@@ -16,6 +21,8 @@ import {
 } from '@chakra-ui/react';
 import MermaidChart from '../utils/Mermaid.tsx'; // Corrected relative path
 import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { FiUpload, FiAlignLeft, FiMessageSquare, FiSearch, FiFileText, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FaVolumeUp } from 'react-icons/fa';
 
 interface InfoSidebarProps {
   isOpen: boolean;
@@ -64,6 +71,18 @@ graph TD
 `;
 
 const InfoSidebar: React.FC<InfoSidebarProps> = ({ isOpen, onClose }) => {
+  // Define feature cards for onboarding
+  const features = [
+    { title: 'Upload Documents', icon: FiUpload, description: 'Upload PDF, DOCX, or TIFF files for processing via OCR.' },
+    { title: 'Get Summaries', icon: FiAlignLeft, description: 'Generate concise summaries of your documents.' },
+    { title: 'Chat (Q&A)', icon: FiMessageSquare, description: 'Ask questions and get answers with citations.' },
+    { title: 'Find Precedents', icon: FiSearch, description: 'Discover similar past claims instantly.' },
+    { title: 'Draft Strategy Note', icon: FiFileText, description: 'Export a DOCX strategy note based on analysis.' },
+    { title: 'Confidence & Healing', icon: FiCheckCircle, description: 'See AI confidence and auto-correct low-confidence answers.' },
+    { title: 'Voice-Over Playback', icon: FaVolumeUp, description: 'Listen to AI answers with text-to-speech.' },
+    { title: 'Interactive Red Team', icon: FiAlertTriangle, description: 'Stress-test the AI with adversarial prompts.' },
+  ];
+
   return (
     <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="lg">
       <DrawerOverlay />
@@ -87,17 +106,22 @@ const InfoSidebar: React.FC<InfoSidebarProps> = ({ isOpen, onClose }) => {
             <Text>3. ✨ **Generate:** Create outputs like strategy notes based on your analysis.</Text>
             <Text>4. 🧪 **Test:** Use the Red Team button to check the AI's robustness.</Text>
 
-            <Heading size="md">How Key Features Work (ELI5)</Heading>
-             <Box pl={4}>
-                <Text>• **Uploader:** Reads documents using OCR (like scanning eyes) and prepares them for the AI.</Text>
-                <Text>• **Summariser:** Asks the AI to give you a short version of a document.</Text>
-                <Text>• **Chat (RAG):** Lets you ask questions. The AI looks through the documents (using a Vector DB 'filing cabinet') to find relevant info and gives you an answer with sources (citations).</Text>
-                <Text>• **Precedents:** After the AI answers in the chat, this panel automatically shows similar past claims.</Text>
-                <Text>• **Strategy Note:** Drafts a basic strategy note in Word format based on the available information.</Text>
-                <Text>• **Confidence/Healing:** Shows how sure the AI is about its chat answers and tries to fix low-confidence ones automatically.</Text>
-                <Text>• **Voice Over:** Reads the AI's chat answers aloud.</Text>
-                <Text>• **Red Team:** Tests the AI with tricky questions to see how well it handles them.</Text>
-            </Box>
+            <Heading size="md">How Key Features Work</Heading>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+              {features.map((feat, idx) => (
+                <Card key={idx} borderWidth="1px" borderRadius="md" overflow="hidden">
+                  <CardHeader>
+                    <Flex align="center">
+                      <Icon as={feat.icon} boxSize={5} color="brand.500" mr={2} />
+                      <Heading size="sm">{feat.title}</Heading>
+                    </Flex>
+                  </CardHeader>
+                  <CardBody>
+                    <Text fontSize="sm" color="gray.600">{feat.description}</Text>
+                  </CardBody>
+                </Card>
+              ))}
+            </SimpleGrid>
 
             <Heading size="md">System Architecture</Heading>
             <Text fontSize="sm" color="gray.600">

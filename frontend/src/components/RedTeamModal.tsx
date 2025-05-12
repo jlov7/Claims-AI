@@ -44,11 +44,11 @@ const RedTeamModal: React.FC<RedTeamModalProps> = ({ isOpen, onClose }) => {
     setError(null);
     try {
       const runResult: RedTeamRunResult = await runRedTeamEvaluation();
-      setResults(runResult.attempts);
-      setSummary(runResult.summary_stats);
+      setResults(runResult.attempts ?? []);
+      setSummary(runResult.summary_stats ?? null);
       toast({
         title: "Red Team Evaluation Complete",
-        description: `Ran ${runResult.summary_stats.total_prompts} prompts with ${runResult.summary_stats.successful_executions} successful executions`,
+        description: `Ran ${runResult.summary_stats?.total_prompts} prompts with ${runResult.summary_stats?.successful_executions} successful executions`,
         status: "success",
         duration: 5000,
         isClosable: true
@@ -112,12 +112,8 @@ const RedTeamModal: React.FC<RedTeamModalProps> = ({ isOpen, onClose }) => {
               <Box borderWidth="1px" borderRadius="lg" p={4} bg="gray.50">
                 <Heading size="md" mb={2}>Summary</Heading>
                 <Text>Prompts Run: {summary.total_prompts}</Text>
-                {summary.successful_executions !== undefined && (
-                  <Text>Successful Executions: {summary.successful_executions}</Text>
-                )}
-                {summary.failed_executions !== undefined && (
-                  <Text>Failed Executions: {summary.failed_executions}</Text>
-                )}
+                <Text>Successes: {summary.successful_executions}</Text>
+                <Text>Failures: {summary.failed_executions}</Text>
               </Box>
             )}
             

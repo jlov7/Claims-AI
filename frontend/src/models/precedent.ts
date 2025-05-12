@@ -2,8 +2,9 @@ export interface Precedent {
   claim_id: string; // Align with backend model (snake_case)
   summary: string;
   outcome: string;
-  keywords: string[];
-  similarity_score?: number; // Align with backend model (snake_case)
+  keywords?: string | string[];
+  distance?: number; // Raw similarity distance from backend (0–1 scale)
+  similarity_score?: number; // Alias for distance (0–1 scale)
 }
 
 export interface PrecedentSearchRequest {

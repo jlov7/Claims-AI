@@ -1,5 +1,5 @@
-import apiClient from './apiClient.js';
-import { SpeechRequest, SpeechResponse } from '../models/speech.js';
+import apiClient from './apiClient.ts';
+import { SpeechRequest, SpeechResponse } from '../models/speech.ts';
 
 export const generateSpeech = async (
   request: SpeechRequest

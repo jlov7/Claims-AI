@@ -110,18 +110,13 @@ class RedTeamService:
                     f"Running red team prompt ID: {prompt_item.id}, Category: {prompt_item.category} via RAGService"
                 )
 
-                # Use the injected RAGService to process the prompt
+                # Call RAGService with only the prompt text (positional argument)
                 (
                     rag_response_text,
                     rag_sources,
                     rag_confidence,
-                ) = await self.rag_service.query_rag(
-                    query=prompt_item.text,
-                    # Assuming red team prompts don't need specific user_id or session_id
-                    # If they do, these would need to be passed or handled appropriately
-                    user_id="red_team_user",
-                    session_id=f"red_team_session_{prompt_item.id}",
-                )
+                    _,
+                ) = await self.rag_service.query_rag(prompt_item.text)
 
                 # Normalize rag_sources to SourceDocument instances
                 if rag_sources is not None:

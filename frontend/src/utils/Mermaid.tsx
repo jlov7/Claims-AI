@@ -2,42 +2,30 @@ import React, { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
 
 interface MermaidProps {
-  chart: string; // The Mermaid chart definition
+  chart: string;
 }
 
-// Initialize Mermaid once
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'neutral', // Or choose another theme like 'default', 'forest', 'dark'
-  securityLevel: 'loose', // Be mindful of security implications if chart definitions come from untrusted sources
-  fontFamily: 'sans-serif',
-});
+let chartIdCounter = 0;
 
 const MermaidChart: React.FC<MermaidProps> = ({ chart }) => {
-  const mermaidDivRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const chartId = useRef(`mermaid-chart-${chartIdCounter++}`);
 
   useEffect(() => {
-    if (mermaidDivRef.current && chart) {
-      // Clear previous render
-      mermaidDivRef.current.innerHTML = '';
-      // Insert the new chart definition
-      mermaidDivRef.current.insertAdjacentHTML('beforeend', chart);
-      try {
-        // Render the chart
-        mermaid.run({
-          nodes: [mermaidDivRef.current],
+    if (ref.current) {
+      mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose', fontFamily: 'sans-serif' });
+      mermaid.render(chartId.current, chart)
+        .then(({ svg }) => {
+          ref.current!.innerHTML = svg;
+        })
+        .catch((e) => {
+          ref.current!.innerHTML = 'Error rendering diagram.';
+          console.error('Error rendering Mermaid chart:', e);
         });
-      } catch (e) {
-        console.error('Error rendering Mermaid chart:', e);
-        // Optionally display an error message in the div
-        if (mermaidDivRef.current) {
-            mermaidDivRef.current.innerHTML = 'Error rendering diagram.';
-        }
-      }
     }
-  }, [chart]); // Re-run the effect if the chart definition changes
+  }, [chart]);
 
-  return <div ref={mermaidDivRef} className="mermaid-diagram-container"></div>;
+  return <div ref={ref} className="mermaid-diagram-container"></div>;
 };
 
 export default MermaidChart; 

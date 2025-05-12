@@ -1,6 +1,7 @@
 import logging
 import os
 import builtins  # For module-level open alias
+import re  # Import re for regex operations
 
 # Module-level open alias for tests
 open = builtins.open
@@ -83,42 +84,20 @@ class SummarisationService:
 
     def summarise_text(self, text_content: str, document_id: str = None) -> str:
         if not text_content.strip():
-            logger.warning(
-                f"Content for summarisation is empty or whitespace only. Doc ID: {document_id}"
-            )
-            return "The provided content is empty or contains only whitespace. Nothing to summarise."
+            logger.warning("Received empty text for summarisation.")
+            raise HTTPException(status_code=400, detail="Cannot summarise empty text.")
 
-        # Based on Phi-4's capabilities, it should handle reasonably long contexts well.
-        # However, extremely long texts might still benefit from chunking or iterative summarisation.
-        # For this MVP, we send the whole content, relying on LLM_MAX_TOKENS.
-        # Prompt engineering is key for good summaries.
+        # Create a typical summarisation prompt
+        template = """You are an AI assistant that specializes in summarizing documents.
 
-        # Check if content exceeds a very rough estimate of token limit to avoid API errors.
-        # This is a very naive check. Tiktoken would be more accurate.
-        # Assuming 1 token ~ 4 chars. LLM_MAX_TOKENS includes prompt + completion.
-        # Let's say prompt is ~100 tokens. Available for content + summary: LLM_MAX_TOKENS - 100.
-        # Available for content: (LLM_MAX_TOKENS - 100 - desired_summary_tokens) * 4 chars
-        # For simplicity, let's just warn if content is very large.
-        if len(text_content) > (
-            self.settings.LLM_MAX_TOKENS * 3
-        ):  # Heuristic: 3 chars per token average
-            logger.warning(
-                f"Content for doc_id '{document_id}' is very long ({len(text_content)} chars). Summary quality may vary or it might be truncated."
-            )
+Write a concise professional summary (4‑8 bullet points).  
+DO NOT include any sentence like "Here is the summary" – output ONLY the
+bullet list.
 
-        template = """
-        You are an expert summarisation assistant.
-        Please provide a concise summary of the following text.
-        Focus on the key information and main points.
-        The summary should be factual and based ONLY on the provided text.
+Text to summarise:
+{text_content}
+"""
 
-        Text to summarise:
-        ---BEGIN TEXT---
-        {text_to_summarise}
-        ---END TEXT---
-
-        Concise Summary:
-        """
         prompt = ChatPromptTemplate.from_template(template)
 
         chain = prompt | self.llm_client | StrOutputParser()
@@ -127,11 +106,21 @@ class SummarisationService:
             logger.info(
                 f"Requesting summary from LLM for document_id: {document_id if document_id else 'direct content'}. Content length: {len(text_content)}"
             )
-            summary = chain.invoke({"text_to_summarise": text_content})
+            raw = chain.invoke({"text_content": text_content})
+
+            # delete common lead‑ins
+            cleaned = re.sub(
+                r"^(Summary:|Here(?: is|\'s) a summary:)\s*", "", raw, flags=re.I
+            )
+
+            # ensure bullet list starts with "•"
+            if not cleaned.lstrip().startswith(("•", "-", "*")):
+                cleaned = "• " + cleaned
+
             logger.info(
                 f"Successfully generated summary for document_id: {document_id if document_id else 'direct content'}"
             )
-            return summary
+            return cleaned
         except Exception as e:
             logger.error(
                 f"LLM summarisation call failed for {document_id if document_id else 'direct content'}: {e}",

@@ -66,12 +66,13 @@ app = FastAPI(
 # Add CORS middleware at module level
 app.add_middleware(
     CORSMiddleware,
-    # Temporarily hardcoding origins for demo/testing due to .env restrictions
+    # Allow all localhost ports for dev/demo
     allow_origins=[
-        "http://localhost:5173",  # Standard Vite default
-        "http://localhost:5176",  # Seen in use
-        "http://localhost:5177",  # Currently in use
-        "http://localhost:5178",  # Seen in use
+        "http://localhost",
+        "http://localhost:*",
+        "http://127.0.0.1",
+        "http://127.0.0.1:*",
+        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -111,6 +112,30 @@ async def health_check():
     except Exception as e:
         logger.error(
             f"Health check: Core component initialization issue: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=503,
+            detail=f"Service unhealthy: Core components might be down - {str(e)}",
+        )
+    return {
+        "status": "Ok",
+        "message": "API is healthy. Check component-specific logs for detailed status.",
+    }
+
+
+@app.get("/api/v1/health", summary="Check API Health (v1)", tags=["General"])
+async def health_check_v1():
+    # Reuse the same logic as /health
+    logger.info("Health check v1 endpoint called.")
+    try:
+        if settings.PHI4_API_BASE:
+            logger.info(f"LM Studio API base configured: {settings.PHI4_API_BASE}")
+        else:
+            logger.warning("LM Studio API base not configured in settings.")
+        logger.info("Core application settings seem accessible.")
+    except Exception as e:
+        logger.error(
+            f"Health check v1: Core component initialization issue: {e}", exc_info=True
         )
         raise HTTPException(
             status_code=503,
