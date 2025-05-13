@@ -1,0 +1,21 @@
+{
+  "filename": "auto_claim_001.txt",
+  "file_path": "/data/raw/insurance_claims/auto_claim_001.txt",
+  "file_type": "text",
+  "content": "INSURANCE CLAIM REPORT\nClaim Number: AC-2024-0153\nDate Filed: May 12, 2024\nPolicy Number: AUTO-472-9182\n\nCLAIMANT INFORMATION\nName: John Smith\nAddress: 123 Main Street, Anytown, CA 94105\nPhone: (555) 123-4567\nEmail: jsmith@example.com\n\nINCIDENT DETAILS\nDate of Incident: May 8, 2024\nTime: Approximately 5:30 PM\nLocation: Intersection of Oak Street and Pine Avenue, Anytown, CA\nWeather Conditions: Clear, dry road conditions\n\nDESCRIPTION OF INCIDENT\nThe claimant was stopped at a red light when his vehicle (2022 Toyota Camry) was struck from behind by another vehicle (2019 Honda Civic). The impact pushed the claimant's vehicle forward approximately three feet. The driver of the other vehicle admitted fault at the scene and provided their insurance information.\n\nDAMAGE ASSESSMENT\n- Rear bumper severely damaged\n- Trunk door misaligned\n- Possible frame damage\n- Rear lights damaged\n- Estimated repair cost: $4,200 (Based on initial assessment by AAA Auto Shop)\n\nINJURY REPORT\nThe claimant reports neck pain and stiffness following the accident. He visited Anytown Urgent Care on May 9, 2024, and was diagnosed with mild whiplash. Prescribed pain medication and physical therapy.\n\nWITNESS INFORMATION\nName: Sarah Johnson\nPhone: (555) 987-6543\nStatement: Witnessed the accident from adjacent lane, confirms claimant was stopped at red light when impact occurred.\n\nINSURANCE ADJUSTER NOTES\nInitial assessment indicates clear liability on the part of the other driver. Recommend accepting claim for vehicle damage. Medical claim requires additional documentation from healthcare provider.\n\nNEXT STEPS\n1. Collect repair estimates from approved body shops\n2. Request medical records from Anytown Urgent Care\n3. Contact third-party insurance for subrogation\n4. Schedule follow-up with claimant by May 15, 2024\n\nCLAIM STATUS: UNDER REVIEW",
+  "document_id": "auto_claim_001",
+  "metadata": {
+    "filename": "auto_claim_001.txt",
+    "claim_number": "AC-2024-0153",
+    "claim_type": "Auto Insurance",
+    "date_filed": "2024-05-12",
+    "claimant_name": "John Smith",
+    "incident_date": "2024-05-08",
+    "status": "UNDER REVIEW"
+  },
+  "processing_info": {
+    "extraction_method": "direct",
+    "extraction_date": "2024-05-12T20:45:00Z",
+    "extraction_status": "success"
+  }
+} 

@@ -1,0 +1,20 @@
+{
+  "filename": "liability_claim.txt",
+  "file_path": "/data/raw/insurance_claims/liability_claim.txt",
+  "file_type": "text",
+  "content": "GENERAL LIABILITY INSURANCE CLAIM REPORT\nClaim Number: GL-2024-0456\nDate Filed: May 9, 2024\nPolicy Number: LIAB-892-7641\n\nINSURED BUSINESS INFORMATION\nBusiness Name: Sunshine Cafe LLC\nAddress: 789 Harbor Drive, Bayside, FL 33149\nContact Person: Michael Chen, Owner\nPhone: (555) 345-6789\nEmail: mchen@sunshinecafe.example.com\n\nINCIDENT DETAILS\nDate of Incident: May 5, 2024\nTime: Approximately 1:45 PM\nLocation: Inside Sunshine Cafe, main dining area\nWeather Conditions: Not applicable (indoor incident)\n\nDESCRIPTION OF INCIDENT\nCustomer (Claimant) allegedly slipped and fell on a wet floor in the dining area. Staff had recently mopped the area due to a spilled drink but claim that \"Caution: Wet Floor\" signs were properly displayed. The customer states that no warning signs were visible from her approach angle. Security camera footage shows the incident but is inconclusive regarding visibility of warning signs from claimant's position.\n\nCLAIMANT INFORMATION\nName: Patricia Rodriguez\nAddress: 542 Coral Way, Bayside, FL 33149\nPhone: (555) 456-7890\nEmail: prodriguez@example.com\n\nINJURY REPORT\nClaimant reports injuries to her right wrist and hip. Transported by personal vehicle to Bayside Memorial Hospital where she was diagnosed with a sprained wrist and hip contusion. Medical report indicates expected recovery within 4-6 weeks with physical therapy. Initial medical expenses reported as $3,750.\n\nWITNESS INFORMATION\n1. Name: James Wilson (Staff member)\n   Statement: Placed warning signs after mopping. Claims signs were clearly visible.\n\n2. Name: Deborah Taylor (Customer)\n   Statement: Was seated nearby and saw the fall. States she noticed warning signs when entering but they \"weren't very obvious.\"\n\nEVIDENCE COLLECTED\n- Security camera footage (preserved and downloaded)\n- Photographs of the area taken immediately following the incident\n- Incident report completed by manager on duty\n- Copy of the restaurant's cleaning log and safety procedures\n- Medical documentation provided by claimant\n\nCLAIMS ADJUSTER NOTES\nPreliminary investigation shows potential shared liability. While the business did place warning signs, their placement and visibility may have been inadequate. Restaurant's cleaning procedures appear to have been followed, but staff training on proper warning sign placement might need review. Recommend further investigation before determining liability.\n\nNEXT STEPS\n1. Interview additional witnesses\n2. Complete detailed review of security footage\n3. Request complete medical records from claimant\n4. Evaluate business safety procedures and staff training records\n5. Schedule follow-up discussion with insured by May 16, 2024\n\nCLAIM STATUS: UNDER INVESTIGATION",
+  "metadata": {
+    "claim_number": "GL-2024-0456",
+    "claim_type": "General Liability - Slip and Fall",
+    "date_filed": "2024-05-09",
+    "business_name": "Sunshine Cafe LLC",
+    "claimant_name": "Patricia Rodriguez",
+    "incident_date": "2024-05-05",
+    "status": "UNDER INVESTIGATION"
+  },
+  "processing_info": {
+    "extraction_method": "direct",
+    "extraction_date": "2024-05-12T20:49:00Z",
+    "extraction_status": "success"
+  }
+} 

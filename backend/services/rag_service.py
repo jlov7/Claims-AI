@@ -54,10 +54,10 @@ class RAGService:
         self.llm_client = ChatOpenAI(
             openai_api_base=self.settings.PHI4_API_BASE,
             openai_api_key="lm-studio",  # Required by Langchain, but not used by LM Studio
-            model=self.settings.PHI4_MODEL_NAME,
-            temperature=self.settings.LLM_TEMPERATURE,  # Using LLM_TEMPERATURE from settings
+            model="llama-3.2-3b-instruct",  # Explicitly use Llama model
+            temperature=0.1,  # Much lower temperature to force direct answers
         )
-        logger.info("ChatOpenAI client initialized.")
+        logger.info("ChatOpenAI client initialized with model: llama-3.2-3b-instruct")
 
         try:
             headers = {}
@@ -158,9 +158,11 @@ class RAGService:
 
                 # Always return the SAME tuple shape the frontend expects:
                 #   text:str, sources:list[dict], confidence:int, attempts:int
+                placeholder_content = "Unfortunately, I couldn't find specific text passages that answer your question directly. Would you like to try rephrasing your question or exploring a different topic?"
                 empty_source = {
                     "file_name": "placeholder_document.txt",
-                    "page_content": "Unfortunately, I couldn't find specific text passages that answer your question directly. Would you like to try rephrasing your question or exploring a different topic?",
+                    "chunk_content": placeholder_content,
+                    "page_content": placeholder_content,  # Added for frontend compatibility
                     "chunk_id": "placeholder_chunk",
                     "score": 0.5,
                 }
@@ -196,7 +198,16 @@ class RAGService:
                     file_name=meta.get("filename", "unknown_file"),
                     score=round(dist, 2) if dist is not None else 0.0,
                 )
-                sources.append(source_doc)
+
+                # Create a dictionary representation that includes both chunk_content and page_content
+                source_dict = source_doc.model_dump()
+                source_dict["page_content"] = (
+                    doc_content  # Add page_content for frontend compatibility
+                )
+                sources.append(
+                    SourceDocument(**source_dict)
+                )  # Create a new SourceDocument with both fields
+
                 context_str += f"Source {i+1} (Document: {source_doc.file_name}, Chunk: {source_doc.chunk_id}):\n{doc_content}\n\n"
             logger.info(f"Retrieved {len(sources)} sources from ChromaDB.")
 
@@ -204,9 +215,11 @@ class RAGService:
                 logger.info(
                     "No relevant documents found in ChromaDB for the query after processing."
                 )
+                placeholder_content = "Unfortunately, I couldn't find specific text passages that answer your question directly. Would you like to try rephrasing your question or exploring a different topic?"
                 empty_source = {
                     "file_name": "placeholder_document.txt",
-                    "page_content": "Unfortunately, I couldn't find specific text passages that answer your question directly. Would you like to try rephrasing your question or exploring a different topic?",
+                    "chunk_content": placeholder_content,
+                    "page_content": placeholder_content,  # Added for frontend compatibility
                     "chunk_id": "placeholder_chunk",
                     "score": 0.5,
                 }
@@ -222,10 +235,9 @@ class RAGService:
             prompt_template = ChatPromptTemplate.from_messages(
                 [
                     (
-                        "system",
-                        "You are a helpful assistant. Answer the user's query based ONLY on the provided context. If the context does not contain the answer, say 'I don't know'. Cite the sources used by referring to their 'Document' and 'Chunk' numbers as provided in the context.",
+                        "user",
+                        "Query: {query}\n\nContext:\n{context}\n\nAnswer the query using ONLY information from the context above. If the answer is not in the context, say 'I don't know based on the provided documents.'",
                     ),
-                    ("user", "Context:\n{context}\n\nQuery: {query}"),
                 ]
             )
 
@@ -257,12 +269,8 @@ class RAGService:
                 re_prompt_template = ChatPromptTemplate.from_messages(
                     [
                         (
-                            "system",
-                            "You are an AI assistant revising a previous answer. The previous answer had low confidence. Review the original query, the provided context, and the previous answer. Provide a revised, more accurate, and well-supported answer based ONLY on the context. If the context truly doesn't support a better answer, clearly state that you cannot definitively answer and briefly explain why. Cite sources used.",
-                        ),
-                        (
                             "user",
-                            "Original Query: {query}\n\nProvided Context:\n{context}\n\nPrevious Low-Confidence Answer:\n{previous_answer}\n\nRevised Answer:",
+                            "Query: {query}\n\nContext:\n{context}\n\nPrevious answer: {previous_answer}\n\nPlease revise the previous answer using ONLY information from the context above.",
                         ),
                     ]
                 )
@@ -315,12 +323,8 @@ class RAGService:
         confidence_prompt_template = ChatPromptTemplate.from_messages(
             [
                 (
-                    "system",
-                    "You are an AI assistant evaluating the confidence of a previously generated answer. Based on the original query, the provided context, and the generated answer, rate your confidence in the answer's accuracy, completeness, and direct relevance to the query on a scale of 1 (low confidence) to 5 (high confidence). Provide ONLY the numerical score as an integer. If you are unsure or cannot determine a score, provide 3.",
-                ),
-                (
                     "user",
-                    "Original Query: {query}\n\nProvided Context:\n{context}\n\nGenerated Answer:\n{answer}\n\nConfidence Score (1-5):",
+                    "Rate confidence from 1-5: {answer} (based on context: {context}). Return ONLY a number.",
                 ),
             ]
         )

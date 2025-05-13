@@ -19,6 +19,7 @@ class SourceDocument(BaseModel):
     document_id: Optional[str] = None
     chunk_id: Optional[str] = None
     chunk_content: str
+    page_content: Optional[str] = None  # Added for frontend compatibility
     file_name: Optional[str] = None
     score: Optional[float] = None
     # Potentially add other metadata like page_number if available

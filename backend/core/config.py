@@ -33,9 +33,7 @@ class Settings(BaseSettings):
 
     # LM Studio (Phi-4)
     PHI4_API_BASE: str = "http://host.docker.internal:1234/v1"
-    PHI4_MODEL_NAME: str = (
-        "phi-4-reasoning-plus"  # Ensure this matches your LM Studio model
-    )
+    PHI4_MODEL_NAME: str = "llama-3.2-3b-instruct"  # Using Llama instead of Phi-4
     LLM_TEMPERATURE: float = 0.1
     LLM_MAX_TOKENS: int = 2048  # Max tokens for Phi-4-plus, adjust if needed
 

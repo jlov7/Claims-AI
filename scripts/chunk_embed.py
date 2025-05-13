@@ -186,6 +186,9 @@ def process_json_file(file_path, collection, embedding_func):
 
         content = data.get("content")
         original_filename = data.get("original_filename", os.path.basename(file_path))
+        document_id = data.get(
+            "document_id", os.path.splitext(os.path.basename(file_path))[0]
+        )
 
         if not content:
             print(f"No 'content' found in {original_filename}. Skipping.")
@@ -219,17 +222,42 @@ def process_json_file(file_path, collection, embedding_func):
         metadatas_to_store = []
         ids_to_store = []
 
+        # Extract metadata from the file
+        json_metadata = data.get("metadata", {})
+
+        # Handle insurance claim specific files
         for i, chunk_content in enumerate(text_chunks):
-            chunk_id = f"{data.get('sha256_hash', original_filename)}_chunk_{i}"  # Use hash for more robust ID
-            metadatas_to_store.append(
-                {
-                    "original_filename": original_filename,
-                    "chunk_index": i,
-                    "document_sha256_hash": data.get("sha256_hash"),
-                    "document_source_extension": data.get("source_file_extension"),
-                    "document_file_size_bytes": data.get("file_size_bytes"),
-                }
-            )
+            # Create a clean metadata dict with only valid types
+            clean_metadata = {
+                "original_filename": original_filename,
+                "chunk_index": i,
+                "document_id": document_id,
+            }
+
+            # Add file-specific metadata with type validation
+            for key, value in json_metadata.items():
+                # Only add metadata values that are valid types for ChromaDB
+                if isinstance(value, (str, int, float, bool)) and value is not None:
+                    clean_metadata[key] = value
+                elif value is not None:
+                    # Convert non-null values to strings if they're not a valid type
+                    clean_metadata[key] = str(value)
+
+            # Add standard metadata if present
+            if "sha256_hash" in data and data["sha256_hash"] is not None:
+                clean_metadata["document_sha256_hash"] = data["sha256_hash"]
+            if (
+                "source_file_extension" in data
+                and data["source_file_extension"] is not None
+            ):
+                clean_metadata["document_source_extension"] = data[
+                    "source_file_extension"
+                ]
+            if "file_size_bytes" in data and data["file_size_bytes"] is not None:
+                clean_metadata["document_file_size_bytes"] = data["file_size_bytes"]
+
+            chunk_id = f"{document_id}_chunk_{i}"
+            metadatas_to_store.append(clean_metadata)
             ids_to_store.append(chunk_id)
 
         collection.add(

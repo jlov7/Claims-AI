@@ -19,7 +19,7 @@ import { getBackendHealth } from './services/healthService.ts';
 import { QuestionIcon, InfoIcon } from '@chakra-ui/icons';
 import InfoSidebar from './components/InfoSidebar.tsx';
 
-export const App = () => {
+const App = () => {
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
   const { isOpen: isInfoSidebarOpen, onOpen: onInfoSidebarOpen, onClose: onInfoSidebarClose } = useDisclosure();
 
@@ -113,3 +113,5 @@ export const App = () => {
     </ChakraProvider>
   );
 };
+
+export default App;

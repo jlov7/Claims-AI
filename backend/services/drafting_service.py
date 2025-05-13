@@ -34,9 +34,12 @@ class DraftingService:
         self.llm_client = ChatOpenAI(
             openai_api_base=settings_instance.PHI4_API_BASE,
             openai_api_key="lm-studio",
-            model=settings_instance.PHI4_MODEL_NAME,
+            model="llama-3.2-3b-instruct",
             temperature=settings_instance.LLM_TEMPERATURE,
             max_tokens=settings_instance.LLM_MAX_TOKENS,
+        )
+        logger.info(
+            "DraftingService initialized with LLM client using model: llama-3.2-3b-instruct"
         )
         # Allow output_dir to be specified, otherwise use settings
         # Ensure output_dir is a Path object for consistency

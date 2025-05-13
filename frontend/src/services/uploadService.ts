@@ -8,6 +8,7 @@ export const uploadFiles = async (files: File[]): Promise<BatchUploadResponse> =
   });
 
   try {
+    console.log("Uploading files to backend:", files.map(f => f.name));
     const response = await apiClient.post<BatchUploadResponse>('/documents/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -20,6 +21,7 @@ export const uploadFiles = async (files: File[]): Promise<BatchUploadResponse> =
       //   }
       // },
     });
+    console.log("Upload response from backend:", response.data);
     return response.data;
   } catch (error: any) {
     console.error('Error uploading files:', error);

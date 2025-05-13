@@ -1,0 +1,19 @@
+{
+  "filename": "water_damage_claim.txt",
+  "file_path": "/data/raw/insurance_claims/water_damage_claim.txt",
+  "file_type": "text",
+  "content": "HOMEOWNERS INSURANCE CLAIM REPORT\nClaim Number: HD-2024-0782\nDate Filed: May 10, 2024\nPolicy Number: HOME-651-3427\n\nPOLICYHOLDER INFORMATION\nName: Emily Johnson\nAddress: 456 Willow Lane, Rivertown, NY 10023\nPhone: (555) 234-5678\nEmail: ejohnson@example.com\n\nINCIDENT DETAILS\nDate of Incident: May 7, 2024\nTime: Discovered at approximately 7:15 AM\nLocation: Kitchen and basement of residential property\nWeather Conditions: Heavy rainfall for 48 hours prior to incident\n\nDESCRIPTION OF INCIDENT\nPolicyholder woke to find approximately 2 inches of standing water in the kitchen. Water had leaked through the ceiling from a burst pipe in the upstairs bathroom. Water continued down internal walls into the basement, causing extensive damage to drywall, flooring, and electrical systems. Emergency plumber determined the cause was a failed connection in the main water line to the upstairs bathroom.\n\nDAMAGE ASSESSMENT\n- Kitchen: Water damage to hardwood flooring, lower cabinets, drywall, and appliances\n- Basement: Saturated carpet, damaged drywall, affected electrical outlets\n- Bathroom: Pipe damage and water damage to flooring and vanity\n- Personal Property: Kitchen table, chairs, area rug, stored items in basement\n- Estimated total damage: $25,800 (based on initial assessment by ServiceMaster restoration)\n\nMITIGATION ACTIONS TAKEN\n1. Emergency plumber called and repaired burst pipe ($375)\n2. Water extraction company hired to remove standing water and begin drying process ($1,200)\n3. Electricity to affected areas turned off to prevent hazards\n4. Damaged items moved to dry areas to assess salvageability\n\nCONTRACTOR ASSESSMENT\nServiceMaster Restoration has provided an initial estimate for dry-out, demolition of damaged materials, and reconstruction. Their report indicates potential mold concerns if drying is not completed promptly.\n\nCLAIMS ADJUSTER NOTES\nInitial inspection confirms significant water damage consistent with policyholder's report. Cause appears to be sudden and accidental pipe failure, which is a covered peril under the policy. Recommend approval of emergency mitigation services and further assessment of structural damage once dry-out is complete.\n\nNEXT STEPS\n1. Complete water extraction and drying (in progress)\n2. Detailed assessment of structural damage\n3. Inventory of damaged personal property\n4. Finalize scope of repairs and approve contractor estimate\n5. Schedule follow-up inspection on May 17, 2024\n\nCLAIM STATUS: ACTIVE - MITIGATION IN PROGRESS",
+  "metadata": {
+    "claim_number": "HD-2024-0782",
+    "claim_type": "Homeowners Insurance - Water Damage",
+    "date_filed": "2024-05-10",
+    "policyholder_name": "Emily Johnson",
+    "incident_date": "2024-05-07",
+    "status": "ACTIVE - MITIGATION IN PROGRESS"
+  },
+  "processing_info": {
+    "extraction_method": "direct",
+    "extraction_date": "2024-05-12T20:47:00Z",
+    "extraction_status": "success"
+  }
+} 

@@ -1,10 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody, Box, VStack, Text, Icon, useToast, Button, Input, List, ListItem, Progress, HStack, Tag, CloseButton, Center, Spinner, Tooltip, Heading, useColorModeValue } from "@chakra-ui/react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud, FiFileText, FiTrash2, FiCheckCircle, FiXCircle, FiAlertCircle } from "react-icons/fi";
 import { v4 as uuidv4 } from 'uuid';
 import type { UploadedFileStatus, BatchUploadResponse } from "../models/upload.ts";
 import { uploadFiles } from "../services/uploadService.ts";
+import { useUpload } from "../context/UploadContext.tsx";
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 25;
@@ -14,12 +15,30 @@ const FileUploader = () => {
   const isE2E = import.meta.env.VITE_E2E_TESTING === 'true';
   const [filesToUpload, setFilesToUpload] = useState<UploadedFileStatus[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [documentsToAdd, setDocumentsToAdd] = useState<{id: string, filename: string}[]>([]);
   const toast = useToast();
+  const { addUploadedDocument } = useUpload();
 
   // Define colors for light/dark mode
   const successBg = useColorModeValue('green.50', 'green.900');
   const errorBg = useColorModeValue('red.50', 'red.900');
   const defaultBg = useColorModeValue('white', 'gray.700'); // Default background for items
+
+  // Use an effect to add documents to context after render
+  useEffect(() => {
+    if (documentsToAdd.length > 0) {
+      console.log("useEffect: Adding documents to context:", documentsToAdd);
+      documentsToAdd.forEach(doc => {
+        addUploadedDocument({
+          id: doc.id,
+          filename: doc.filename,
+          uploadedAt: new Date()
+        });
+      });
+      // Clear the documents to add
+      setDocumentsToAdd([]);
+    }
+  }, [documentsToAdd, addUploadedDocument]);
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     if (filesToUpload.length + acceptedFiles.length > MAX_FILES) {
@@ -113,7 +132,7 @@ const FileUploader = () => {
         const afterUploadUpdate = prev.map(ufs => {
           const backendResult = response.results.find(res => res.filename === ufs.file.name);
           if (ufs.status === 'uploading' && backendResult) { // Check if this ufs was part of the uploaded batch
-            return {
+            const updatedFile = {
               ...ufs,
               status: backendResult.success ? 'success' as 'success' : 'error' as 'error',
               progress: 100,
@@ -121,6 +140,43 @@ const FileUploader = () => {
               backendFileId: backendResult.document_id,
               ingested: backendResult.ingested
             };
+            
+            // Add successfully uploaded documents to the UploadContext
+            if (backendResult.success && backendResult.document_id) {
+              // Normalize the document_id to ensure consistent format
+              let normalizedDocId = backendResult.document_id;
+              
+              // Remove .json extension if present
+              if (normalizedDocId.endsWith('.json')) {
+                normalizedDocId = normalizedDocId.slice(0, -5);
+                console.log(`Removed .json extension, document_id now: ${normalizedDocId}`);
+              }
+              
+              // Store the original file extension if applicable
+              const originalExt = ufs.file.name.substring(ufs.file.name.lastIndexOf('.'));
+              
+              // If the normalizedDocId doesn't already include the file's extension, append it
+              // This makes the document ID more identifiable and consistent with original filename
+              if (originalExt && !normalizedDocId.toLowerCase().endsWith(originalExt.toLowerCase())) {
+                normalizedDocId = `${normalizedDocId}${originalExt}`;
+                console.log(`Added original extension, final document_id: ${normalizedDocId}`);
+              }
+              
+              console.log("Adding document to UploadContext:", {
+                id: normalizedDocId,
+                filename: ufs.file.name
+              });
+              
+              // Add to documentsToAdd state
+              setDocumentsToAdd(prev => [...prev, {
+                id: normalizedDocId,
+                filename: ufs.file.name
+              }]);
+            } else if (backendResult.success) {
+              console.warn("Document uploaded successfully but no document_id returned from backend:", backendResult);
+            }
+            
+            return updatedFile;
           }
           return ufs; 
         });
@@ -137,6 +193,7 @@ const FileUploader = () => {
       });
 
     } catch (error: any) {
+      console.error("Upload error:", error);
       toast({ title: "Upload Failed", description: error.message || "An unexpected error occurred during upload.", status: "error" });
       // Mark all 'uploading' files as 'error' if the entire batch call failed catastrophically
       setFilesToUpload(prev => {
@@ -219,11 +276,15 @@ const FileUploader = () => {
                       {ufs.status === 'success' && (
                         ufs.ingested ? (
                           <Tooltip label="File processed and ingested into search database">
-                            <Icon as={FiCheckCircle} data-icon="check-circle" color="green.500" w={5} h={5}/>
+                            <Box display="inline-block">
+                              <Icon as={FiCheckCircle} data-icon="check-circle" color="green.500" w={5} h={5}/>
+                            </Box>
                           </Tooltip>
                         ) : (
                           <Tooltip label="File processed but not ingested into search database">
-                            <Icon as={FiAlertCircle} color="yellow.500" w={5} h={5}/>
+                            <Box display="inline-block">
+                              <Icon as={FiAlertCircle} color="yellow.500" w={5} h={5}/>
+                            </Box>
                           </Tooltip>
                         )
                       )}

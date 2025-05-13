@@ -29,6 +29,8 @@ class DocumentService:
     ) -> BatchUploadResponse:
         results: List[UploadResponseItem] = []
         batch_overall_status = "Completed"
+        uploaded_count = 0
+        ingested_count = 0
 
         temp_batch_dir = RAW_UPLOAD_DIR / str(uuid.uuid4())
         temp_batch_dir.mkdir(parents=True, exist_ok=True)
@@ -44,6 +46,8 @@ class DocumentService:
             if not sanitized_filename:
                 sanitized_filename = f"{file_id}_upload"
 
+            # Create document_id that will be consistent and returned to frontend
+            document_id = sanitized_filename
             file_location = temp_batch_dir / sanitized_filename
 
             try:
@@ -55,8 +59,10 @@ class DocumentService:
                         filename=file.filename,
                         message="Successfully saved. Awaiting processing.",
                         success=True,
+                        document_id=document_id,  # Always set document_id
                     )
                 )
+                uploaded_count += 1
             except Exception as e:
                 logger.error(f"Error saving file {file.filename}: {e}")
                 results.append(
@@ -83,9 +89,16 @@ class DocumentService:
                             success=False,
                         )
                     ],
+                    uploaded=0,
+                    ingested=0,
+                    errors=["No files were processed"],
                 )
             return BatchUploadResponse(
-                overall_status=batch_overall_status, results=results
+                overall_status=batch_overall_status,
+                results=results,
+                uploaded=uploaded_count,
+                ingested=ingested_count,
+                errors=["Some files failed to save"],
             )
 
         try:
@@ -160,6 +173,7 @@ class DocumentService:
                                 metadatas=[{"document_id": doc_id}],
                                 ids=[doc_id],
                             )
+                            ingested_count += 1  # Increment ingested count for each successful ingestion
                 except Exception as e:
                     logger.error(
                         f"Failed to ingest documents into RAG store: {e}", exc_info=True
@@ -176,6 +190,17 @@ class DocumentService:
                     )
                     if is_part_of_batch and results[i].success:
                         results[i].message = "File processed successfully."
+                        results[i].ingested = True  # Mark as ingested
+                        # Ensure document_id is set (in case it wasn't already)
+                        if not results[i].document_id:
+                            # Find the corresponding saved file
+                            for saved_file in saved_file_paths:
+                                if saved_file.name == item.filename or (
+                                    len(item.filename) > 30
+                                    and saved_file.name.startswith(item.filename[:30])
+                                ):
+                                    results[i].document_id = saved_file.name
+                                    break
 
         except FileNotFoundError as fnf_error:
             logger.error(f"FileNotFoundError during OCR processing: {fnf_error}")
@@ -230,7 +255,17 @@ class DocumentService:
         else:  # All must have failed if we have results and none are True
             batch_overall_status = "Failed"
 
-        return BatchUploadResponse(overall_status=batch_overall_status, results=results)
+        return BatchUploadResponse(
+            overall_status=batch_overall_status,
+            results=results,
+            uploaded=uploaded_count,
+            ingested=ingested_count,
+            errors=(
+                ["Some files failed to process"]
+                if batch_overall_status != "Completed"
+                else []
+            ),
+        )
 
 
 document_service = DocumentService()
