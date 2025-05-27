@@ -1,0 +1,45 @@
+# How Claims-AI Agentic Demo Works
+
+This document explains the workflow of the Claims-AI agentic demo, from receiving a user request to generating a strategy note and publishing key facts.
+
+## Agentic Workflow Diagram
+
+The following diagram illustrates the sequence of agents and key decision points in the process:
+
+![Agent Workflow Diagram]({{ graph_image_path }})
+
+*Diagram generated from the LangGraph definition.*
+
+## Step-by-Step Flow
+
+The process generally follows these steps:
+
+{% for step in workflow_steps %}
+1.  **{{ step.name }}**: {{ step.description }}
+    {%- if step.details %}
+    <ul>
+    {% for detail in step.details %}
+        <li>{{ detail }}</li>
+    {% endfor %}
+    </ul>
+    {%- endif %}
+{% endfor %}
+
+## Key Technologies Involved
+
+- **Orchestration**: LangGraph
+- **Language Model (Local)**: Mistral-7B-Instruct (via Ollama)
+- **Core Agents**:
+    - OrchestratorAgent: Manages the overall flow and delegates tasks.
+    - SummariseAgent: Generates summaries of claim documents.
+    - QAAgent: Answers questions based on document content, with citations.
+    - DraftAgent: Produces a strategy note, utilizing tools like the Reserve Predictor and Negotiation Coach.
+- **Tools**:
+    - Smart-Skim (Heatmap): Identifies relevant pages in large documents.
+    - Reserve Predictor: Estimates potential claim reserve values.
+    - Negotiation Coach: Provides tips based on solicitor and injury type.
+- **Event Bus**: Redpanda (Kafka-compatible) for publishing `claim-facts`.
+- **API Layer**: LangServe, integrated with FastAPI.
+
+---
+*This document is auto-generated. Do not edit directly.* 

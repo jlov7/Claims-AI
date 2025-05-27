@@ -1,0 +1,134 @@
+# Description: Main requirements file for the Claims-AI project.
+# For a minimal set of dependencies for testing specific LangChain components,
+# see `backend/requirements.minimal.txt` (if it exists for debugging).
+
+# Basic Server & Env
+python-dotenv>=1.0.0,<2.0.0
+fastapi>=0.111.0,<0.112.0
+uvicorn[standard]>=0.29.0,<0.30.0
+# pydantic>=1.10.0,<2.0.0 # Original pydantic constraint - will be replaced
+
+# LangChain Ecosystem - Pydantic v2 compatible versions from requirements.debug.txt
+langchain>=0.3.0,<0.4.0
+langchain-core>=0.3.0,<0.4.0
+langchain-community>=0.3.0,<0.4.0
+langchain-text-splitters>=0.3.0,<0.4.0
+langchain-openai>=0.3.0,<0.4.0
+langgraph>=0.3.0,<0.4.0
+langserve[server]>=0.3.1,<0.4.0
+langsmith>=0.1.0
+pydantic>=2.0.0,<3.0.0 # Pin to Pydantic v2 from debug
+
+# Explicitly add sse-starlette with version compatible with langserve 0.3.1
+sse-starlette>=1.3.0,<2.0.0
+
+# LLM & Tokenizer
+tiktoken>=0.7.0,<1.0.0
+openai
+
+# Commented out for debugging dependency conflicts:
+# psycopg2-binary
+# sqlalchemy
+# redis
+# celery[redis]
+# python-docx
+# pdfminer.six
+# beautifulsoup4
+# pycryptodome
+# lxml
+# pytesseract
+# pdfplumber
+# google-api-python-client
+# google-auth-httplib2
+# google-auth-oauthlib
+# google-cloud-aiplatform # Vertex AI
+# google-cloud-speech # Vertex AI
+# google-cloud-storage # Vertex AI
+# google-generativeai # Gemini
+# minio
+# opentelemetry-api
+# opentelemetry-exporter-otlp-proto-grpc
+# opentelemetry-instrumentation-fastapi
+# opentelemetry-sdk
+# protobuf~=3.20.0 # Might conflict with newer google packages, be cautious if uncommenting
+# grpcio~=1.47.0 # Might conflict with newer google packages
+# grpcio-status~=1.47.0
+# posthog
+# pytest
+# pytest-cov
+# pytest-asyncio
+# pytest-mock
+# pytest-dotenv
+# httpx # Already implicitly handled by langserve/fastapi
+# httpx-sse
+# cryptography
+# python-multipart
+# PyPDF2
+# aiokafka # from debug requirements, if not directly needed by app, could be commented
+# starlette # Already implicitly handled by fastapi
+# requests
+# urllib3
+# websockets
+# typing-inspect
+# typing-extensions
+# numpy
+# pandas
+# scipy
+# matplotlib
+# plotly
+# catboost
+# coverage
+# pyyaml
+# certifi
+# charset-normalizer
+# idna
+# tqdm
+# packaging
+# six
+# python-dateutil
+# pytz
+# tzdata
+# greenlet
+# click
+# Deprecated
+# wrapt
+# sniffio
+# frozenlist
+# aiosignal
+# multidict
+# yarl
+# asgiref
+# h11
+# anyio
+# annotated-types
+# pydantic_core # Implicitly handled by pydantic
+# pydantic-settings
+# orjson
+# rich
+# rich-toolkit
+# humanfriendly
+# coloredlogs
+# shellingham
+# jiter
+# uvloop # If uvicorn[standard] handles it, this might be redundant
+# httptools # If uvicorn[standard] handles it, this might be redundant
+# watchfiles # For dev server reload, not strictly for prod build
+# debugpy # For debugging, not for prod build
+# ruff
+black
+pre-commit
+
+# Dev Tools
+# Jupyter for notebooks (if needed)
+# jupyterlab
+# notebook
+
+# Other Utilities
+# e.g., requests for HTTP calls if not covered by other packages
+requests
+
+# Redis for caching (example, if you add caching layer)
+# redis
+
+# LangServe CLI related, if needed directly
+typer 

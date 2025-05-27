@@ -1,0 +1,65 @@
+.kafka-inspector {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  width: 400px;
+  max-height: 300px;
+  border: 1px solid #ccc;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.kafka-inspector-header {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kafka-inspector-header h3 {
+  margin: 0;
+  font-size: 1em;
+}
+
+.kafka-inspector-messages {
+  padding: 10px;
+  overflow-y: auto;
+  flex-grow: 1;
+  font-size: 0.8em;
+}
+
+.kafka-inspector-message {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  word-break: break-all;
+}
+
+.kafka-inspector-message:last-child {
+  border-bottom: none;
+}
+
+.kafka-inspector-toggle-button {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 999;
+}
+
+.kafka-inspector-close-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+}

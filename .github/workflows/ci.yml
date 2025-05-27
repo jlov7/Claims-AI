@@ -1,0 +1,218 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ] # Adjust branches as needed
+  pull_request:
+    branches: [ main, develop ] # Adjust branches as needed
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "20"
+  # LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }} # Example for LangSmith
+  # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}       # Example for OpenAI
+
+jobs:
+  lint-and-unit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12'] # Match .python-version, ensure this is a string
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }} # Use the global env var
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Ensure all necessary dev dependencies are listed here or in requirements-dev.txt
+          pip install ruff pytest pytest-cov pytest-asyncio black mypy types-pyyaml types-requests bandit pre-commit
+
+      - name: Run linters (Ruff, Black, Bandit, Mypy)
+        run: |
+          ruff check .
+          black --check .
+          bandit -r backend/
+          mypy backend/ --ignore-missing-imports
+          # pre-commit run --all-files # Alternatively, run pre-commit hooks
+
+      - name: Run unit tests with coverage
+        run: pytest tests/backend/unit --cov=backend --cov-report=xml --cov-report=html
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # Optional: if you use Codecov
+          files: ./coverage.xml # Codecov typically uses the XML report
+          # fail_ci_if_error: true # Optional: uncomment to fail CI if Codecov upload fails
+          # htmlcov can be uploaded as a separate artifact if needed for manual review
+      - name: Upload HTML coverage report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage-report
+          path: htmlcov/
+          retention-days: 7
+
+
+  e2e-and-evaluation:
+    needs: lint-and-unit-test
+    runs-on: ubuntu-latest
+    # Service containers for backend, kafka, etc.
+    # USER ACTION: Replace 'your-langserve-image:latest' with your actual Docker image
+    # for the LangServe application. This image should be built and pushed to a registry
+    # (like Docker Hub or GitHub Container Registry) in a separate workflow or manually.
+    # Alternatively, if you build and run services using docker-compose, you might
+    # run `docker-compose up -d` here and manage service health checks.
+    services:
+      langserve:
+        image: your-langserve-image:latest # <<< USER ACTION REQUIRED
+        ports:
+          - 8000:8000
+        # env: # Add environment variables if your LangServe service needs them at runtime
+        #   DATABASE_URL: ${{ secrets.DATABASE_URL_CI }}
+
+      # kafka: # Example if you use Kafka directly.
+      #   image: confluentinc/cp-kafka:latest
+      #   ports: [ "9092:9092" ]
+      #   env:
+      #     KAFKA_BROKER_ID: 1
+      #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      #     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      #     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      # zookeeper: # Example if Kafka needs Zookeeper.
+      #   image: confluentinc/cp-zookeeper:latest
+      #   ports: [ "2181:2181" ]
+      #   env:
+      #     ZOOKEEPER_CLIENT_PORT: 2181
+      #     ZOOKEEPER_TICK_TIME: 2000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies for evaluation
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Specific dependencies for evaluation scripts:
+          pip install rouge_score bert_score torch torchvision torchaudio nltk sentence-transformers # For summary eval
+          pip install ragas # For Q&A eval (ensure it includes necessary LLM SDKs like openai or huggingface)
+          # Download nltk punkt tokenizer, essential for many NLP tasks including ROUGE
+          python -m nltk.downloader punkt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm' # Cache pnpm dependencies
+          cache-dependency-path: frontend/pnpm-lock.yaml # Path to pnpm lock file
+
+      - name: Install frontend dependencies and Playwright browsers
+        # Assuming your frontend project is in the 'frontend' directory
+        working-directory: ./frontend
+        run: |
+          pnpm install --frozen-lockfile # Use frozen lockfile for CI
+          pnpm exec playwright install --with-deps # Install browsers and their OS dependencies
+
+      # USER ACTION: Implement robust health checks for all services.
+      # The simple curl below is a basic check for LangServe.
+      # For Kafka, you might check connectivity or try to list topics.
+      - name: Wait for LangServe service
+        run: |
+          echo "Waiting for LangServe to be available on http://localhost:8000..."
+          timeout 120s bash -c \
+            'until curl -s -f http://localhost:8000/docs > /dev/null; do \
+              echo "LangServe not ready, waiting 5s..."; \
+              sleep 5; \
+            done'
+          echo "LangServe is up!"
+      # Add similar checks for Kafka/Zookeeper if used directly as services here
+
+      # USER ACTION: Ensure your evaluation scripts output results to predictable file paths
+      # that are captured by the "Upload Evaluation Results" artifact step.
+      # For example, ensure run_summary_evaluation.py saves to ./summary_evaluation_results.json
+
+      - name: Run Summary Evaluation
+        # env:
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # If summary agent uses OpenAI
+          # ANY_OTHER_SUMMARY_AGENT_SECRETS: ${{ secrets.ANY_OTHER_SUMMARY_AGENT_SECRETS }}
+          # Ensure LANGSERVE_BASE_URL is configured if your script doesn't default to localhost:8000
+        run: python scripts/run_summary_evaluation.py
+
+      - name: Run Q&A Evaluation
+        # env:
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # If Q&A agent uses OpenAI
+          # ANY_OTHER_QA_AGENT_SECRETS: ${{ secrets.ANY_OTHER_QA_AGENT_SECRETS }}
+        run: python scripts/run_qa_evaluation.py
+
+      - name: Run Tool Use Evaluation
+        env:
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }} # Essential for LangSmith
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # If your agent uses OpenAI
+          # ANY_OTHER_TOOL_AGENT_SECRETS: ${{ secrets.ANY_OTHER_TOOL_AGENT_SECRETS }}
+        run: python scripts/run_tool_use_evaluation.py
+
+      - name: Run Playwright E2E tests
+        working-directory: ./frontend
+        # Pass the base URL of unbelievablenpment to Playwright
+        # This assumes your frontend application is served, possibly by Playwright's webServer option
+        # or a separate step. If Playwright tests directly hit the LangServe API, ensure
+        # its baseURL is set to http://localhost:8000 (matching the service defined above).
+        # env:
+          # PLAYWRIGHT_BASE_URL: http://localhost:3000 # Example if frontend runs on 3000
+          # CI: true # Often used by test runners
+        run: pnpm exec playwright test
+        # USER ACTION: Review Playwright config (playwright.config.ts)
+        # - Ensure `baseURL` in `use` is appropriate for CI.
+        # - Consider using Playwright's `webServer` option to start your frontend dev server.
+
+      - name: Upload Playwright report
+        if: always() # always() ensures this runs even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/ # Default Playwright HTML report output directory
+          retention-days: 30
+
+      - name: Upload Evaluation Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          # USER ACTION: Ensure these paths match where your scripts save their output.
+          path: |
+            ./summary_evaluation_results.json
+            ./qa_evaluation_results.json
+            ./tool_use_evaluation_results.json
+            # Add paths to other evaluation outputs, e.g., .csv files or logs
+          retention-days: 30
+
+# Optional: Deployment job
+# deploy:
+#   needs: e2e-and-evaluation
+#   runs-on: ubuntu-latest
+#   if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Deploy on push to main
+#   steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+#     # Add steps for building and deploying your application
+#     - name: Example: Deploy to Cloud Provider
+#       run: echo "Simulating deployment..."
+#       # Actual deployment commands would go here

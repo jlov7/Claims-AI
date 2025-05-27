@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  tts:
+    image: ghcr.io/coqui-ai/tts-cpu:latest
+    platform: linux/amd64
+    container_name: ${COMPOSE_PROJECT_NAME:-claims-ai}-tts
+    ports:
+      - "5002:5002"
+    networks:
+      - claims_ai_network
+    entrypoint: ["python3"]
+    command: [
+      "TTS/server/server.py", 
+      "--model_name", "tts_models/en/ljspeech/vits", 
+      "--use_cuda", "no",
+      "--port", "5002"
+    ]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import socket; socket.create_connection(('''127.0.0.1''', 5002), timeout=5)\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    environment:
+      - COQUI_MODEL_PATH=/root/.local/share/tts
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+networks:
+  claims_ai_network:
+    # external: true # Removed to let Docker Compose manage it based on the main docker-compose.yml
+    driver: bridge # Optionally, be explicit, or let it inherit from the main compose file definition 

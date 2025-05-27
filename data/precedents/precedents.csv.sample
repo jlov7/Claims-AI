@@ -1,0 +1,3 @@
+ClaimID,Summary,Outcome,Keywords,SimilarityScore
+PREC001,"Summary of precedent case 1 involving X and Y...","Favorable settlement after mediation","keyword1,keyword2",0.85
+PREC002,"Details of precedent case 2 regarding Z issue...","Dismissed on summary judgment","keyword3,keyword4",0.72 

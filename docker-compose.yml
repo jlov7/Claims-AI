@@ -1,0 +1,119 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    platform: linux/amd64 # Force amd64 build for wider compatibility
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data/processed_text:/app/data/processed_text
+      - ./data/outputs:/app/data/outputs
+      - ./data/outputs/debug_docker:/app/debug_output
+      - ./data/temp_raw_uploads:/app/data/temp_raw_uploads
+      - ./data/precedents:/app/data/precedents
+      - ./scripts:/app/scripts
+    env_file:
+      - .env
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - OLLAMA_API_BASE=http://host.docker.internal:11434
+      - CHROMA_COLLECTION_NAME=claims_documents_mvp
+    depends_on:
+      minio:
+        condition: service_started
+      chromadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+    networks:
+      - claims_ai_network
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # Console
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    command: server /data --console-address ":9001"
+    networks:
+      - claims_ai_network
+
+  chromadb:
+    image: chromadb/chroma:0.5.18 # Updated image version
+    ports:
+      - "8008:8000" # Exposing ChromaDB on host port 8008 to avoid conflict with backend
+    volumes:
+      - chroma_data:/chroma/.chroma/index # Persist ChromaDB data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"] # Basic check
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - claims_ai_network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - claims_ai_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-claimsadmin} -d ${POSTGRES_DB:-claimsdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redpanda:
+    image: redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --smp
+      - '1'
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --default-log-level
+      - info
+      - --redpanda-cfg
+      - "developer_mode=true"
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - --rpc-addr
+      - 0.0.0.0:33145
+      - --advertise-rpc-addr
+      - redpanda:33145
+      - --overprovisioned # For local development
+    ports:
+      - "9092:9092"    # Kafka API
+      - "29092:29092"  # Internal Kafka API (if accessed directly by other containers on this port)
+      - "9644:9644"    # Admin API
+    networks:
+      - claims_ai_network
+
+volumes:
+  minio_data:
+  chroma_data:
+  postgres_data:
+
+networks:
+  claims_ai_network:
+    driver: bridge 

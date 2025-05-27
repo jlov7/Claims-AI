@@ -1,0 +1,332 @@
+/* Custom styles for React-Joyride */
+.react-joyride__beacon {
+  display: inline-block;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  z-index: 9999;
+  animation: beacon-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes beacon-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.react-joyride__beacon-inner,
+.react-joyride__beacon-outer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.react-joyride__beacon-inner {
+  background-color: #0061e6; /* Match brand color */
+}
+
+.react-joyride__beacon-outer {
+  border: 2px solid #0061e6;
+  opacity: 0.7;
+  animation: beacon-outer-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes beacon-outer-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.react-joyride__overlay {
+  z-index: 9999 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.react-joyride__spotlight {
+  border-radius: 4px !important;
+  position: absolute;
+  z-index: 9998 !important;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+  animation: spotlight-pulse 2s infinite alternate !important;
+}
+
+@keyframes spotlight-pulse {
+  0% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+  }
+  100% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7) !important;
+  }
+}
+
+.react-joyride__tooltip {
+  z-index: 10000 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  max-width: 450px !important;
+  transition: opacity 0.2s ease-in-out !important;
+  opacity: 0.98 !important;
+  background-color: #fff;
+  color: #333;
+  position: relative;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.react-joyride__tooltip:hover {
+  opacity: 1 !important;
+}
+
+.react-joyride__tooltip-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px !important;
+  color: #0061e6 !important;
+}
+
+.react-joyride__button {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  display: inline-block;
+  padding: 10px 18px !important;
+  margin: 0 5px;
+  border-radius: 6px !important;
+  cursor: pointer;
+}
+
+.react-joyride__button--primary {
+  background-color: #0061e6 !important;
+  color: white !important;
+}
+
+.react-joyride__button--primary:hover {
+  background-color: #0052c2 !important;
+  transform: translateY(-1px) !important;
+}
+
+.react-joyride__button--secondary {
+  background-color: transparent;
+  color: #4a5568;
+}
+
+.react-joyride__button--secondary:hover {
+  color: #2d3748;
+}
+
+.react-joyride__button--back {
+  margin-right: 12px !important;
+  color: #4a5568 !important;
+}
+
+.react-joyride__button--skip {
+  color: #718096 !important;
+}
+
+.react-joyride__progress {
+  margin-top: 10px !important;
+  color: #718096 !important;
+  font-size: 14px !important;
+}
+
+.joyride-highlighted {
+  position: relative !important;
+}
+
+.joyride-highlighted::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+.react-joyride__tooltip-content {
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1a202c !important;
+}
+
+div[data-rj-portal="true"] {
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+body.tour-active {
+  overflow: hidden !important;
+}
+
+.react-joyride * {
+  pointer-events: auto !important;
+}
+
+/* Custom Joyride styles for Claims-AI */
+
+/* Tooltip overlay and container - ensure it's above everything */
+.react-joyride__overlay {
+  z-index: 9999 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.react-joyride__tooltip {
+  z-index: 10000 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  max-width: 450px !important;
+  transition: opacity 0.2s ease-in-out !important;
+  opacity: 0.98 !important;
+  background-color: #fff;
+  color: #333;
+  position: relative;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.react-joyride__tooltip:hover {
+  opacity: 1 !important;
+}
+
+/* Spotlight - highlight the target element */
+.react-joyride__spotlight {
+  border-radius: 4px !important;
+  z-index: 9998 !important;
+  position: absolute;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+  animation: spotlight-pulse 2s infinite alternate !important;
+}
+
+@keyframes spotlight-pulse {
+  0% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+  }
+  100% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7) !important;
+  }
+}
+
+/* Button styles */
+.react-joyride__button {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  display: inline-block;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.react-joyride__button--primary {
+  background-color: #0061e6 !important;
+  color: white !important;
+  padding: 10px 18px !important;
+  border-radius: 6px !important;
+}
+
+.react-joyride__button--primary:hover {
+  background-color: #0052c2 !important;
+  transform: translateY(-1px) !important;
+}
+
+.react-joyride__button--secondary {
+  background-color: transparent;
+  color: #4a5568;
+}
+
+.react-joyride__button--secondary:hover {
+  color: #2d3748;
+}
+
+.react-joyride__button--back {
+  margin-right: 12px !important;
+  color: #4a5568 !important;
+}
+
+.react-joyride__button--skip {
+  color: #718096 !important;
+}
+
+/* Progress indicator */
+.react-joyride__progress {
+  margin-top: 10px !important;
+  color: #718096 !important;
+  font-size: 14px !important;
+}
+
+/* Completely hide debug highlighting by default */
+.joyride-highlighted::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+/* Only show debug highlighting when tour is active */
+body.tour-active .joyride-highlighted::after {
+  display: block !important;
+  content: "" !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed #0061e6 !important;
+  pointer-events: none;
+  z-index: 9000;
+}
+
+/* Make tooltip content more readable */
+.react-joyride__tooltip-content {
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1a202c !important;
+}
+
+/* Title styling */
+.react-joyride__tooltip-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px !important;
+  color: #0061e6 !important;
+}
+
+/* Ensure Joyride components appear above other components */
+div[data-rj-portal="true"] {
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+/* Fix for any overlapping issues with other UI elements */
+body.tour-active {
+  overflow: hidden !important;
+}
+
+/* Ensure all tooltips are clickable */
+.react-joyride * {
+  pointer-events: auto !important;
+}

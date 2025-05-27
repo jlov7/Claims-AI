@@ -1,0 +1,4 @@
+[tool.ruff]
+# Specific lint configurations
+[tool.ruff.lint]
+extend-ignore = ["E402", "F841"] 

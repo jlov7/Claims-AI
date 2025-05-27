@@ -1,0 +1,93 @@
+graph LR
+    subgraph "User Interface (React Frontend)"
+        direction LR
+        UI_Kafka["Kafka Inspector Panel"]
+        UI_Main["Main User Interaction"]
+    end
+
+    subgraph "Backend (FastAPI & LangServe)"
+        direction LR
+        FS_FastAPI["FastAPI App / Main Entrypoint"]
+        subgraph LS_SubApp ["LangServe Sub-App /langserve"]
+            direction TB
+            LS_Playground["Playground UI /langserve/playground/"]
+            LS_Orchestrator["LangGraph Orchestrator Runnable"]
+            LS_Query["RAG Query Runnable /query"]
+            LS_Summarise["Summarise Runnable /summarise"]
+            LS_Draft["Draft Runnable /draft"]
+        end
+    end
+
+    subgraph "Agentic Core (LangGraph)"
+        direction TB
+        LG_Orchestrator["Orchestrator Agent"]
+        LG_Summarise[SummariseAgent]
+        LG_QA[QAAgent]
+        LG_Draft[DraftAgent]
+        LG_ToolNode[ToolNode]
+    end
+
+    subgraph "Tools & Microservices"
+        direction TB
+        Tool_SmartSkim["Smart-Skim Tool (Heatmap)"]
+        Tool_Reserve["Reserve Predictor (Mock Microservice)"]
+        Tool_Negotiation["Negotiation Coach Tool"]
+    end
+
+    subgraph "Data & Infrastructure Layer (Local Demo)"
+        direction LR
+        DI_Ollama["Ollama (Mistral-7B LLM)"]
+        DI_Chroma["ChromaDB (Vector Store)"]
+        DI_Minio["Minio (Document Storage / S3 API)"]
+        DI_Redpanda["Redpanda (Kafka for Events)"]
+    end
+
+    %% User Flow
+    UI_Main --> FS_FastAPI
+    FS_FastAPI -- Mounts --> LS_SubApp
+    LS_SubApp -- Exposes Runnables & Playground --> LS_Playground
+    LS_SubApp -- Exposes Runnables & Playground --> LS_Orchestrator
+    LS_SubApp -- Exposes Runnables & Playground --> LS_Query
+    LS_SubApp -- Exposes Runnables & Playground --> LS_Summarise
+    LS_SubApp -- Exposes Runnables & Playground --> LS_Draft
+
+    %% Agent Flow
+    LS_Orchestrator --> LG_Orchestrator
+    LG_Orchestrator -- Delegates to --> LG_Summarise
+    LG_Orchestrator -- Delegates to --> LG_QA
+    LG_Orchestrator -- Delegates to --> LG_Draft
+
+    LG_Summarise -- Uses --> LG_ToolNode
+    LG_QA -- Uses --> LG_ToolNode
+    LG_Draft -- Uses --> LG_ToolNode
+
+    LG_ToolNode -- Invokes --> Tool_SmartSkim
+    LG_ToolNode -- Invokes --> Tool_Reserve
+    LG_ToolNode -- Invokes --> Tool_Negotiation
+
+    %% Data Interactions
+    LG_Summarise -- LLM Calls --> DI_Ollama
+    LG_QA -- LLM Calls --> DI_Ollama
+    LG_Draft -- LLM Calls --> DI_Ollama
+    Tool_SmartSkim -- Embeddings/Storage --> DI_Chroma
+    Tool_SmartSkim -- Document Access --> DI_Minio
+    LG_QA -- Vector Search --> DI_Chroma
+    LG_Draft -- Document Context --> DI_Minio
+
+    %% Eventing
+    LG_Orchestrator -- Publishes Facts --> DI_Redpanda
+    DI_Redpanda -- Streams to --> UI_Kafka
+
+    classDef fastapi fill:#E6F3FF,stroke:#0073E6,stroke-width:2px,color:#000;
+    classDef langserve fill:#FFF0E6,stroke:#FF8C00,stroke-width:2px,color:#000;
+    classDef langgraph fill:#E6FFED,stroke:#00B33C,stroke-width:2px,color:#000;
+    classDef tools fill:#F0E6FF,stroke:#8000FF,stroke-width:2px,color:#000;
+    classDef data fill:#FFF9E6,stroke:#FFD700,stroke-width:2px,color:#000;
+    classDef ui fill:#F5F5F5,stroke:#666,stroke-width:2px,color:#000;
+
+    class UI_Main,UI_Kafka ui;
+    class FS_FastAPI fastapi;
+    class LS_SubApp,LS_Playground,LS_Orchestrator,LS_Query,LS_Summarise,LS_Draft langserve;
+    class LG_Orchestrator,LG_Summarise,LG_QA,LG_Draft,LG_ToolNode langgraph;
+    class Tool_SmartSkim,Tool_Reserve,Tool_Negotiation tools;
+    class DI_Ollama,DI_Chroma,DI_Minio,DI_Redpanda data; 

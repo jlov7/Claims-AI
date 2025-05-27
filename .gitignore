@@ -1,0 +1,47 @@
+# Python virtual environment
+.venv/
+
+# Node.js dependencies
+node_modules/
+
+# IDE / Editor specific
+.vscode/
+.idea/
+.cursor/rules/
+
+# OS specific
+.DS_Store
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Log files
+*.log
+
+# Local environment configuration
+.env
+
+# SpecStory explanation file
+.specstory/.what-is-this.md
+
+# Local Documentation/Project Files (Keep local, don't commit)
+v1explanation.txt
+v1explanations.txt
+v1project.md
+v1tasks.md
+v1README.md
+v2tasks.md
+v2initialsteps.md
+v2project.md
+v2explanations.txt
+v2explanation.txt
+TEMP.txt
+project.md
+tasks.md

@@ -1,0 +1,2 @@
+This is a test document for integration tests.
+It needs to exist for test_summarise_invoke_by_document_id_success. 
