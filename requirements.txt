@@ -14,6 +14,7 @@ langchain-core>=0.3.0,<0.4.0
 langchain-community>=0.3.0,<0.4.0
 langchain-text-splitters>=0.3.0,<0.4.0
 langchain-openai>=0.3.0,<0.4.0
+langchain-ollama>=0.3.0,<0.4.0  # Added to replace deprecated ChatOllama
 langgraph>=0.3.0,<0.4.0
 langserve[server]>=0.3.1,<0.4.0
 langsmith>=0.1.0
@@ -26,16 +27,25 @@ sse-starlette>=1.3.0,<2.0.0
 tiktoken>=0.7.0,<1.0.0
 openai
 
-# Commented out for debugging dependency conflicts:
+# Document Processing
+python-docx>=0.8.10  # Added for document processing
+chromadb>=0.4.18  # Added for vector database
+
+# Messaging
+aiokafka>=0.8.0  # Added for Kafka messaging
+
+# Additional dependencies identified during testing
+lxml>=4.9.3  # Required by python-docx
+bcrypt>=4.0.1  # Required by chromadb
+mmh3>=3.0.0  # Required by chromadb
+
+# Previously commented out but needed dependencies:
 # psycopg2-binary
 # sqlalchemy
 # redis
 # celery[redis]
-# python-docx
-# pdfminer.six
 # beautifulsoup4
 # pycryptodome
-# lxml
 # pytesseract
 # pdfplumber
 # google-api-python-client
@@ -45,40 +55,38 @@ openai
 # google-cloud-speech # Vertex AI
 # google-cloud-storage # Vertex AI
 # google-generativeai # Gemini
-# minio
-# opentelemetry-api
-# opentelemetry-exporter-otlp-proto-grpc
-# opentelemetry-instrumentation-fastapi
-# opentelemetry-sdk
+minio>=7.2.0  # Uncommented as it's used in the code
+opentelemetry-api
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-instrumentation-fastapi
+opentelemetry-sdk
 # protobuf~=3.20.0 # Might conflict with newer google packages, be cautious if uncommenting
 # grpcio~=1.47.0 # Might conflict with newer google packages
 # grpcio-status~=1.47.0
 # posthog
-# pytest
-# pytest-cov
-# pytest-asyncio
-# pytest-mock
-# pytest-dotenv
-# httpx # Already implicitly handled by langserve/fastapi
-# httpx-sse
+pytest
+pytest-cov
+pytest-asyncio
+pytest-mock
+pytest-dotenv
+httpx # Required by several services
+httpx-sse>=0.4.0  # Required by langchain-community
 # cryptography
-# python-multipart
+python-multipart  # Required by FastAPI for file uploads
 # PyPDF2
-# aiokafka # from debug requirements, if not directly needed by app, could be commented
-# starlette # Already implicitly handled by fastapi
 # requests
 # urllib3
-# websockets
+websockets>=10.0  # Required by uvicorn[standard]
 # typing-inspect
 # typing-extensions
-# numpy
-# pandas
+numpy
+pandas
 # scipy
 # matplotlib
 # plotly
-# catboost
+catboost>=1.2.0  # Required for reserve predictor model
 # coverage
-# pyyaml
+pyyaml
 # certifi
 # charset-normalizer
 # idna
@@ -102,10 +110,10 @@ openai
 # anyio
 # annotated-types
 # pydantic_core # Implicitly handled by pydantic
-# pydantic-settings
-# orjson
-# rich
-# rich-toolkit
+pydantic-settings>=2.0.0  # Required by langchain-community
+orjson>=3.9.0  # Required by langserve
+rich>=10.0.0
+rich-toolkit>=0.11.0  # Required by fastapi-cli
 # humanfriendly
 # coloredlogs
 # shellingham
@@ -114,7 +122,7 @@ openai
 # httptools # If uvicorn[standard] handles it, this might be redundant
 # watchfiles # For dev server reload, not strictly for prod build
 # debugpy # For debugging, not for prod build
-# ruff
+ruff
 black
 pre-commit
 
