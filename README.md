@@ -2,7 +2,7 @@
 
 ## 1. Project Overview & Purpose
 
-**The Challenge:** Processing long-tail insurance claims, particularly for complex cases like asbestos and Noise-Induced Hearing Loss (NIHL), is a time-consuming and labor-intensive endeavor. Claims handlers often wade through hundreds, if not thousands, of pages of scanned documents, medical reports, and legal correspondence to extract critical information, assess liability, and determine appropriate reserves. This manual effort leads to extended cycle times, increased operational costs, and potential inconsistencies.
+**The Challenge:** Processing long-tail insurance claims, particularly for complex and historical cases, is a time-consuming and labor-intensive endeavor. Claims handlers often wade through hundreds, if not thousands, of pages of scanned documents, medical reports, and legal correspondence to extract critical information, assess liability, and determine appropriate reserves. This manual effort leads to extended cycle times, increased operational costs, and potential inconsistencies.
 
 **Architectural Exploration:** This project explores a potential agent-based Generative AI architecture designed to assist claims handlers. The goal is to demonstrate and test a system that can intelligently navigate and synthesize vast amounts of unstructured data, providing handlers with actionable insights, accurate summaries, and well-reasoned draft strategy notes. It serves as a proof-of-concept for a solution that could significantly reduce manual reading and drafting time.
 
@@ -85,7 +85,7 @@ Follow these steps to get the project up and running locally:
 
 2.  **Clone the Repository:**
     ```bash
-    git clone <YOUR_REPOSITORY_URL_HERE> # <-- TODO: Replace with your repository URL
+    git clone <https://github.com/jlov7/Claims-AI/tree/agentic-demo>
     cd Claims-AI
     ```
 
