@@ -67,7 +67,7 @@ class Settings(BaseSettings):
         3  # Score below which self-healing is triggered
     )
     SELF_HEAL_MAX_ATTEMPTS: int = (
-        2  # Increased from 1 to allow more self-healing attempts
+        2  # Maximum number of self-healing attempts
     )
 
     # Minio
@@ -107,10 +107,7 @@ class Settings(BaseSettings):
 
     # Phase 4: Innovation Layer
     # P4.A: Nearest Precedent Finder
-    CHROMA_PRECEDENTS_COLLECTION_NAME: str = "claims_precedents"
-    # P4.B: Confidence Meter
-    CONFIDENCE_THRESHOLD_SELF_HEAL: int = 3
-    SELF_HEAL_MAX_ATTEMPTS: int = 1  # Number of re-prompts if confidence is low
+    # CHROMA_PRECEDENTS_COLLECTION_NAME is already defined above
     # P4.D: Red Team
     REDTEAM_PROMPTS_FILE: str = "backend/security/redteam_prompts.yml"
 

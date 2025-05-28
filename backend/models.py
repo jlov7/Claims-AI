@@ -172,7 +172,7 @@ class RedTeamAttempt(BaseModel):
     category: str
     response_text: str
     rag_sources: Optional[List[SourceDocument]] = None
-    rag_confidence: Optional[float] = None  # Changed from int to float for confidence
+    rag_confidence: Optional[int] = None  # Changed from float to int for consistency with confidence_score
     evaluation_notes: Optional[str] = None
 
 

@@ -71,20 +71,11 @@ async def upload_documents(
             f"An unexpected error occurred during document upload processing: {e}",
             exc_info=True,
         )
-        # Construct a BatchUploadResponse to inform client about the failure mode
-        error_results = [
-            UploadResponseItem(
-                filename=f.filename,
-                success=False,
-                message="Unexpected server error during processing.",
-                error_details=str(e),
-            )
-            for f in files
-        ]
-        # Note: FastAPI will return this with a 200 OK status unless an HTTPException is raised.
-        # For a more RESTful approach, consider raising an HTTPException here or using a global exception handler
-        # to convert such error responses to 500s.
-        return BatchUploadResponse(overall_status="Failed", results=error_results)
+        # Instead of returning error results with 200 OK status, raise an HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected server error occurred during document processing: {str(e)}"
+        )
 
 
 @router.get("/list")

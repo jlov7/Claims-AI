@@ -8,8 +8,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter()  # Define an empty router
 
 """
-# All @router.post and @router.get definitions from the original file should be commented out here.
-# For example:
+IMPORTANT: RAG Query functionality has been moved to LangServe
+
+The direct REST API endpoints that were previously defined in this file have been migrated
+to the LangServe application (backend/services/langserve_app/app.py).
+
+LangServe provides a more flexible and traceable interface for querying the RAG system.
+Please use the LangServe endpoints instead of these direct APIs:
+
+- For RAG queries: /api/langserve/rag_query_runnable/invoke
+- For collection-specific queries: /api/langserve/rag_collection_query_runnable/invoke
+
+The original endpoint definitions are kept below as comments for reference:
+
 # @router.post(
 #     "/ask",
 #     response_model=RAGQueryResponse,

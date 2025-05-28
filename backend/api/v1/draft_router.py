@@ -8,8 +8,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter()  # Define an empty router
 
 """
-# All @router.post definitions from the original file should be commented out here.
-# For example:
+IMPORTANT: Drafting functionality has been moved to LangServe
+
+The direct REST API endpoints that were previously defined in this file have been migrated
+to the LangServe application (backend/services/langserve_app/app.py).
+
+LangServe provides a more flexible and traceable interface for drafting strategy notes.
+Please use the LangServe endpoints instead of these direct APIs:
+
+- For strategy note drafting: /api/langserve/draft_strategy_note_runnable/invoke
+
+The original endpoint definitions are kept below as comments for reference:
+
 # @router.post(
 #     "/draft",
 #     summary="Draft a Claim Strategy Note as a DOCX file",

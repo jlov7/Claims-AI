@@ -178,7 +178,7 @@ make model-switch llm=<provider_config>
 
 1.  **Ollama (with Mistral or other local models):**
     *   **Command:** `make model-switch llm=ollama/mistral`
-        *   Replace `mistral` with any other Ollama model name you have pulled (e.g., `ollama/llama2`). The command will use the part after `ollama/` as the `OLLAMA_MODEL_NAME`.
+        *   Replace `mistral` with any other Ollama model name you have pulled (e.g., `ollama/llama3`). The command will use the part after `ollama/` as the `OLLAMA_MODEL_NAME`.
     *   **`.env` Variables Set:**
         *   `LLM_PROVIDER="ollama"`
         *   `OLLAMA_MODEL_NAME="<your_model_name>"` (e.g., "mistral")
@@ -203,4 +203,50 @@ make model-switch llm=<provider_config>
 
 **After Switching:**
 It's recommended to restart the backend application to ensure the new LLM configuration is loaded. The `make model-switch` command may include a placeholder for smoke tests, which you can expand to verify the new LLM is working.
+
+## 8. Known Issues and Future Improvements
+
+The following issues were identified in a recent code review and should be addressed in future updates:
+
+### Medium Severity Issues
+
+1. **Smart-Skim Tool Document Loading:**
+   - **Issue:** In `backend/tools/heatmap.py`, the `smart_skim_tool` directly constructs file paths to load document content.
+   - **Impact:** This approach is brittle and will likely fail for documents not accessible via simple file paths (e.g., those in Minio).
+   - **Fix:** Refactor the tool to use the `DocumentLoaderService` to fetch document content, ensuring consistent document access across the application.
+
+### Low Severity Issues
+
+1. **Hardcoded Paths:**
+   - **Issue:** Several files like `backend/services/document_service.py`, `backend/tools/negotiation.py`, and `backend/core/memory.py` contain hardcoded paths.
+   - **Fix:** Define critical paths in `core/config.py` and reference them throughout the codebase.
+
+2. **Embedding Model Consistency:**
+   - **Issue:** Different approaches to embeddings are used across the application.
+   - **Fix:** Standardize on one embedding approach (e.g., OllamaEmbeddings with nomic-embed-text) for all internal embedding tasks.
+
+3. **Protected Member Access:**
+   - **Issue:** SummarisationService's protected methods are accessed from SummariseAgent.
+   - **Fix:** Expose a public method in SummarisationService for fetching document content.
+
+4. **Collection Fallback Logic in RAGService:**
+   - **Issue:** RAGService relies on fallback collections when a primary collection might be empty.
+   - **Fix:** Implement better handling for empty collections, addressing the root cause rather than relying on fallbacks.
+
+5. **Debug print() Statements:**
+   - **Issue:** There are debug print() statements in config.py.
+   - **Fix:** Replace these with logger.debug() or remove them entirely.
+
+6. **CORS Policy:**
+   - **Issue:** The CORS policy in main.py is very permissive.
+   - **Fix:** For production, restrict CORS to specific frontend domain(s).
+
+7. **Dockerfile Optimization:**
+   - **Issue:** The reserve_predictor/Dockerfile copies more files than necessary.
+   - **Fix:** Modify the Dockerfile to copy only files needed for the service.
+
+8. **Dependency Management Inconsistency:**
+   - **Issue:** Different dependency management approaches are used across services.
+   - **Fix:** Standardize on a single approach (preferably Poetry) for all Python services.
+
 

@@ -21,6 +21,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import StateGraph, END
 
 # Import DocumentLoaderService and its getter
+from services.document_loader_service import DocumentLoaderService, get_document_loader_service
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,6 @@ class DraftingService:
             model=self.settings.OLLAMA_MODEL_NAME,
             temperature=self.settings.LLM_TEMPERATURE,
             base_url=self.settings.OLLAMA_BASE_URL,
-            format="json",
             # Add other parameters like mirostat if needed for better structured output
         )
         logger.info("DraftingService LLM client initialized successfully.")
@@ -78,11 +78,10 @@ class DraftingService:
         # Initialize DocumentLoaderService here, passing settings
         # Assuming DocumentLoaderService also takes settings or uses get_settings()
         try:
-            # self.document_loader = get_document_loader_service() # This might create circular dependency if DocumentLoader also uses DraftingService
-            # For now, let draft_agent_node handle doc loading if it needs it through a separate mechanism or service.
+            self.document_loader = get_document_loader_service()
             logger.info(
                 "DraftingService: DocumentLoaderService initialized."
-            )  # Placeholder
+            )
         except ImportError as e:
             logger.error(
                 f"DraftingService: Failed to import DocumentLoaderService: {e}"
